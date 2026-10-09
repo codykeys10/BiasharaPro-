@@ -6,17 +6,9 @@
 <meta name="theme-color" content="#4f46e5">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>BiasharaPro</title>
-<script>
-  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
-</script>
-<script defer src="/_vercel/insights/script.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/js-sha256/0.9.0/sha256.min.js"></script>
-<script>
-  window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
-</script>
-<script defer src="/_vercel/speed-insights/script.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{--primary:#4f46e5;--primary2:#4338ca;--bg:#f1f5f9;--card:#fff;--text:#0f172a;--muted:#64748b;--border:#e2e8f0;--ok:#16a34a;--err:#dc2626;--warn:#f59e0b;--radius:14px}
@@ -707,8 +699,16 @@ async function pgDashboard(){
   const todaySales = sales.filter(s => new Date(s.tarehe) >= t0);
   const lowStock = prods.filter(p => p.stock <= 5);
   const last30 = sales.filter(s => Date.now() - new Date(s.tarehe).getTime() < 30*86400000);
-  const avgDaily = sum(last30, 'jumla') / 30;
-  const avgProfit = sum(last30, 'faida') / 30;
+
+// Hesabu siku zenye mauzo
+const uniqueDays = new Set(last30.map(s => {
+  const d = new Date(s.tarehe);
+  return d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate();
+}));
+const daysWithSales = uniqueDays.size || 1;
+
+const avgDaily = sum(last30, 'jumla') / daysWithSales;
+const avgProfit = sum(last30, 'faida') / daysWithSales;
   const map = {};
   sales.forEach(s => { if(!map[s.bidhaa_jina]) map[s.bidhaa_jina] = { qty:0, total:0, profit:0 }; map[s.bidhaa_jina].qty += s.idadi; map[s.bidhaa_jina].total += s.jumla; map[s.bidhaa_jina].profit += s.faida; });
   const top = Object.entries(map).sort((a,b)=> b[1].profit - a[1].profit).slice(0,3);
@@ -728,7 +728,7 @@ async function pgDashboard(){
       <div class="stat"><div class="lb">Mauzo Jumla</div><div class="vl">${money(sum(sales,'jumla'))}</div></div>
       <div class="stat"><div class="lb">Faida Jumla</div><div class="vl" style="color:var(--ok)">${money(sum(sales,'faida'))}</div></div>
     </div>
-    <p style="font-size:11.5px;color:var(--muted);text-align:center;margin:-10px 0 16px">Wastani umetokana na mauzo ya siku 30 zilizopita</p>
+  <p style="font-size:11.5px;color:var(--muted);text-align:center;margin:-10px 0 16px">Wastani umetokana na siku ${daysWithSales} zenye mauzo (siku 30 zilizopita)</p>
     ${lowStock.length ? `<div class="card" style="border-color:#fcd34d;background:#fffbeb"><h3>⚠️ Bidhaa zinazoisha stock</h3>${lowStock.slice(0,6).map(p => `<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #fde68a;font-size:14px"><span><b>${esc(p.jina)}</b></span><span class="badge ${p.stock===0?'err':'warn'}">${p.stock} ${esc(p.kipimo||'')}</span></div>`).join('')}</div>` : ''}
     ${top.length ? `<div class="card"><h3>🏆 Bidhaa zenye faida kubwa</h3>${top.map(([name,d],i) => `<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;${i<top.length-1?'border-bottom:1px solid var(--border)':''}"><div><div style="font-weight:700;font-size:14px">${esc(name)}</div><div style="font-size:12px;color:var(--muted)">${num(d.qty)} zimeuzwa · ${money(d.total)}</div></div><div class="pos">${money(d.profit)}</div></div>`).join('')}</div>` : ''}
     <div class="card"><h3>Mauzo ya Karibuni <button class="btn ghost xs" onclick="go('sales')">Zote →</button></h3>${recent.length ? `<div class="tw"><table><thead><tr><th>Muda</th><th>Bidhaa</th><th class="num">Idadi</th><th class="num">Jumla</th><th class="num">Faida</th></tr></thead><tbody>${recent.map(s => `<tr><td style="color:var(--muted);font-size:12.5px">${dtstr(s.tarehe)}</td><td><b>${esc(s.bidhaa_jina)}</b><br><small style="color:var(--muted)">${esc(s.muuzaji_jina||'—')}</small></td><td class="num">${num(s.idadi)}</td><td class="num">${money(s.jumla)}</td><td class="num pos">${money(s.faida)}</td></tr>`).join('')}</tbody></table></div>` : '<div class="empty"><div class="e">🧾</div><div>Hakuna mauzo bado</div></div>'}</div>
