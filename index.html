@@ -14,71 +14,26 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
-  --primary:#5b4bff;
-  --primary2:#7c6cff;
-  --bg:#eef0ff;
-  --card:rgba(255,255,255,0.65);
-  --text:#0f172a;
-  --muted:#64748b;
-  --border:rgba(255,255,255,0.5);
-  --ok:#16a34a;
-  --err:#dc2626;
-  --warn:#f59e0b;
-  --radius:24px;
+  --primary:#5b4bff;--primary2:#7c6cff;--bg:#eef0ff;--card:rgba(255,255,255,0.65);
+  --text:#0f172a;--muted:#64748b;--border:rgba(255,255,255,0.5);
+  --ok:#16a34a;--err:#dc2626;--warn:#f59e0b;--radius:24px;
   --glass-blur:blur(28px) saturate(180%);
 }
 html,body{min-height:100%}
-body{
-  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',system-ui,sans-serif;
-  color:var(--text);font-size:15px;line-height:1.5;background:#eef0ff;
-  position:relative;overflow-x:hidden;-webkit-font-smoothing:antialiased;
-}
+body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',system-ui,sans-serif;color:var(--text);font-size:15px;line-height:1.5;background:#eef0ff;position:relative;overflow-x:hidden;-webkit-font-smoothing:antialiased}
 body::before{content:'';position:fixed;inset:0;z-index:-2;background:linear-gradient(135deg,#e0e7ff 0%,#f0e7ff 50%,#ffe7f0 100%)}
-body::after{
-  content:'';position:fixed;inset:0;z-index:-1;
-  background:
-    radial-gradient(circle at 15% 20%, rgba(120,90,255,0.45) 0%, transparent 40%),
-    radial-gradient(circle at 85% 15%, rgba(255,120,200,0.40) 0%, transparent 45%),
-    radial-gradient(circle at 75% 85%, rgba(80,180,255,0.45) 0%, transparent 45%),
-    radial-gradient(circle at 20% 90%, rgba(255,180,120,0.35) 0%, transparent 45%);
-  filter:blur(40px);pointer-events:none;
-}
+body::after{content:'';position:fixed;inset:0;z-index:-1;background:radial-gradient(circle at 15% 20%, rgba(120,90,255,0.45) 0%, transparent 40%),radial-gradient(circle at 85% 15%, rgba(255,120,200,0.40) 0%, transparent 45%),radial-gradient(circle at 75% 85%, rgba(80,180,255,0.45) 0%, transparent 45%),radial-gradient(circle at 20% 90%, rgba(255,180,120,0.35) 0%, transparent 45%);filter:blur(40px);pointer-events:none}
 .hidden{display:none!important}
 button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
-input,select,textarea{
-  font-family:inherit;font-size:15px;width:100%;padding:13px 16px;
-  border:1px solid rgba(255,255,255,0.7);border-radius:16px;
-  background:rgba(255,255,255,0.55);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
-  color:var(--text);outline:none;transition:.25s;
-}
-input:focus,select:focus,textarea:focus{
-  background:rgba(255,255,255,0.85);border-color:rgba(91,75,255,0.5);
-  box-shadow:0 0 0 4px rgba(91,75,255,0.15);
-}
+input,select,textarea{font-family:inherit;font-size:15px;width:100%;padding:13px 16px;border:1px solid rgba(255,255,255,0.7);border-radius:16px;background:rgba(255,255,255,0.55);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);color:var(--text);outline:none;transition:.25s}
+input:focus,select:focus,textarea:focus{background:rgba(255,255,255,0.85);border-color:rgba(91,75,255,0.5);box-shadow:0 0 0 4px rgba(91,75,255,0.15)}
 label{display:block;font-size:13px;font-weight:600;color:var(--muted);margin:14px 0 6px;letter-spacing:-0.2px}
 
-#splash{
-  position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;color:#fff;transition:opacity .5s;
-  background:linear-gradient(135deg,#5b4bff,#a55bff 50%,#ff6cb5);overflow:hidden;
-}
-#splash::before{
-  content:'';position:absolute;inset:-50%;
-  background:
-    radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4) 0%, transparent 40%),
-    radial-gradient(circle at 70% 70%, rgba(255,255,255,0.3) 0%, transparent 40%);
-  filter:blur(30px);animation:rotateBg 20s linear infinite;
-}
+#splash{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;transition:opacity .5s;background:linear-gradient(135deg,#5b4bff,#a55bff 50%,#ff6cb5);overflow:hidden}
+#splash::before{content:'';position:absolute;inset:-50%;background:radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4) 0%, transparent 40%),radial-gradient(circle at 70% 70%, rgba(255,255,255,0.3) 0%, transparent 40%);filter:blur(30px);animation:rotateBg 20s linear infinite}
 @keyframes rotateBg{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 #splash.hide{opacity:0;pointer-events:none}
-.splash-logo{
-  width:100px;height:100px;border-radius:28px;background:rgba(255,255,255,0.25);
-  backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);
-  border:1.5px solid rgba(255,255,255,0.5);
-  box-shadow:0 20px 60px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.6);
-  display:flex;align-items:center;justify-content:center;font-weight:900;font-size:40px;
-  margin-bottom:20px;animation:pulse 2s infinite;overflow:hidden;position:relative;z-index:1;
-}
+.splash-logo{width:100px;height:100px;border-radius:28px;background:rgba(255,255,255,0.25);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);border:1.5px solid rgba(255,255,255,0.5);box-shadow:0 20px 60px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.6);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:40px;margin-bottom:20px;animation:pulse 2s infinite;overflow:hidden;position:relative;z-index:1}
 .splash-logo img{width:100%;height:100%;object-fit:cover}
 @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
 .splash-name{font-size:26px;font-weight:800;letter-spacing:-0.5px;position:relative;z-index:1}
@@ -92,13 +47,7 @@ label{display:block;font-size:13px;font-weight:600;color:var(--muted);margin:14p
 .landing-wrap{max-width:1100px;margin:0 auto;position:relative;z-index:1}
 .landing-nav{display:flex;align-items:center;justify-content:space-between;padding:8px 0 20px;flex-wrap:wrap;gap:12px}
 .landing-brand{display:flex;align-items:center;gap:12px}
-.landing-brand .l-logo{
-  width:48px;height:48px;border-radius:16px;background:rgba(255,255,255,0.22);
-  backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);
-  border:1px solid rgba(255,255,255,0.4);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,0.5), 0 8px 24px rgba(0,0,0,0.15);
-  display:flex;align-items:center;justify-content:center;font-weight:900;font-size:19px;overflow:hidden;
-}
+.landing-brand .l-logo{width:48px;height:48px;border-radius:16px;background:rgba(255,255,255,0.22);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);border:1px solid rgba(255,255,255,0.4);box-shadow:inset 0 1px 0 rgba(255,255,255,0.5), 0 8px 24px rgba(0,0,0,0.15);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:19px;overflow:hidden}
 .landing-brand .l-logo img{width:100%;height:100%;object-fit:cover}
 .landing-brand b{font-size:18px;letter-spacing:-0.3px}
 .landing-nav .nav-cta{display:flex;gap:8px}
@@ -149,53 +98,10 @@ label{display:block;font-size:13px;font-weight:600;color:var(--muted);margin:14p
 h2.pt{font-size:24px;margin-bottom:4px;letter-spacing:-0.6px;font-weight:800}
 p.ps{color:var(--muted);font-size:13.5px;margin-bottom:18px}
 
-/* ===== FLOATING BOTTOM NAV (iOS 26 Style) ===== */
-.bnav{
-  position:fixed;
-  bottom:calc(16px + env(safe-area-inset-bottom));
-  left:16px;
-  right:16px;
-  z-index:60;
-  max-width:520px;
-  margin:0 auto;
-  background:rgba(255,255,255,0.72);
-  backdrop-filter:blur(44px) saturate(200%);
-  -webkit-backdrop-filter:blur(44px) saturate(200%);
-  border:1px solid rgba(255,255,255,0.75);
-  border-radius:34px;
-  display:flex;
-  padding:7px 7px;
-  gap:2px;
-  box-shadow:
-    0 16px 48px rgba(31,38,135,0.22),
-    0 4px 14px rgba(31,38,135,0.10),
-    inset 0 1px 0 rgba(255,255,255,0.9);
-  transition:transform .3s, box-shadow .3s;
-}
-.bnav a{
-  flex:1;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:2px;
-  padding:9px 4px 8px;
-  font-size:10px;
-  font-weight:700;
-  color:var(--muted);
-  border-radius:28px;
-  transition:all .3s cubic-bezier(.34,1.56,.64,1);
-  position:relative;
-  letter-spacing:-0.2px;
-  cursor:pointer;
-}
+.bnav{position:fixed;bottom:calc(16px + env(safe-area-inset-bottom));left:16px;right:16px;z-index:60;max-width:520px;margin:0 auto;background:rgba(255,255,255,0.72);backdrop-filter:blur(44px) saturate(200%);-webkit-backdrop-filter:blur(44px) saturate(200%);border:1px solid rgba(255,255,255,0.75);border-radius:34px;display:flex;padding:7px 7px;gap:2px;box-shadow:0 16px 48px rgba(31,38,135,0.22), 0 4px 14px rgba(31,38,135,0.10), inset 0 1px 0 rgba(255,255,255,0.9);transition:transform .3s, box-shadow .3s}
+.bnav a{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:9px 4px 8px;font-size:10px;font-weight:700;color:var(--muted);border-radius:28px;transition:all .3s cubic-bezier(.34,1.56,.64,1);position:relative;letter-spacing:-0.2px;cursor:pointer}
 .bnav a span{font-size:21px;line-height:1;transition:transform .3s cubic-bezier(.34,1.56,.64,1);display:block}
-.bnav a.active{
-  color:var(--primary);
-  background:linear-gradient(135deg,rgba(91,75,255,0.18),rgba(165,91,255,0.14));
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.7),
-    0 4px 12px rgba(91,75,255,0.18);
-}
+.bnav a.active{color:var(--primary);background:linear-gradient(135deg,rgba(91,75,255,0.18),rgba(165,91,255,0.14));box-shadow:inset 0 1px 0 rgba(255,255,255,0.7), 0 4px 12px rgba(91,75,255,0.18)}
 .bnav a.active span{transform:scale(1.15)}
 .bnav a:active{transform:scale(.94)}
 
@@ -389,7 +295,7 @@ tr:last-child td{border-bottom:none}
       <button id="btnRegister" class="btn primary full" type="button" onclick="doRegister()">Tengeneza Akaunti</button>
     </div>
     <span class="back-link" onclick="showLanding()">← Rudi kwenye ukurasa wa mwanzo</span>
-    <div class="version">v7.1 · Liquid Glass</div>
+    <div class="version">v7.2 · Liquid Glass</div>
   </div>
 </div>
 
@@ -446,7 +352,7 @@ tr:last-child td{border-bottom:none}
 
 <script>
 /* =========================================================
-   BIASHARAPRO v7.1 — Liquid Glass + Floating Nav
+   BIASHARAPRO v7.2 — Custom Confirm
    ========================================================= */
 
 function log(msg){ console.log(msg); }
@@ -466,6 +372,39 @@ const BACKUP_KEY = 'bp_last_backup';
 const BRAND_KEY = 'bp_brand';
 let state = { user:null, profile:null, page:'dashboard', period:'all', search:'', regRole:'owner', reportView:'week' };
 
+/* ============ CUSTOM CONFIRM ============ */
+let confirmResolveFn = null;
+function myConfirm(message){
+  return new Promise((resolve) => {
+    const m = document.getElementById('modal');
+    m.innerHTML = `
+      <div class="modal-box" onclick="event.stopPropagation()" style="max-width:380px">
+        <div style="padding:28px 22px 22px;text-align:center">
+          <div style="width:64px;height:64px;border-radius:22px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto 16px;box-shadow:0 12px 32px rgba(245,158,11,0.35)">⚠️</div>
+          <h3 style="font-size:17px;font-weight:800;letter-spacing:-0.3px;margin-bottom:10px">Uthibitisho</h3>
+          <p style="font-size:14.5px;color:var(--muted);line-height:1.6;margin-bottom:22px">${esc(message)}</p>
+          <div style="display:flex;gap:10px">
+            <button class="btn ghost" style="flex:1;padding:13px" onclick="confirmAnswer(false)">Ghairi</button>
+            <button class="btn primary" style="flex:1;padding:13px" onclick="confirmAnswer(true)">Sawa</button>
+          </div>
+        </div>
+      </div>`;
+    m.classList.remove('hidden');
+    m.onclick = () => confirmAnswer(false);
+    confirmResolveFn = (val) => {
+      m.classList.add('hidden');
+      m.innerHTML = '';
+      m.onclick = null;
+      confirmResolveFn = null;
+      resolve(val);
+    };
+  });
+}
+function confirmAnswer(val){
+  if(confirmResolveFn) confirmResolveFn(val);
+}
+
+/* ============ BRAND ============ */
 function getBrand(){ try { return JSON.parse(localStorage.getItem(BRAND_KEY)) || {}; } catch(e){ return {}; } }
 function saveBrand(b){ try { localStorage.setItem(BRAND_KEY, JSON.stringify(b)); } catch(e){ toast('Kifaa kimejaa','err'); return; } applyBrand(); }
 function logoHTML(b){
@@ -514,11 +453,10 @@ function applyBrand(){
 
 function showTerms(){
   showModal('Masharti ya Matumizi', `
-    <p style="margin-bottom:12px"><b>1. Kukubali Masharti</b><br>Kwa kutumia mfumo huu, unakubali masharti yote yaliyoorodheshwa hapa.</p>
-    <p style="margin-bottom:12px"><b>2. Akaunti Yako</b><br>Wewe ni mhusika wa usalama wa akaunti yako. Usishiriki password yako.</p>
+    <p style="margin-bottom:12px"><b>1. Kukubali Masharti</b><br>Kwa kutumia mfumo huu, unakubali masharti yote.</p>
+    <p style="margin-bottom:12px"><b>2. Akaunti Yako</b><br>Wewe ni mhusika wa usalama wa akaunti yako.</p>
     <p style="margin-bottom:12px"><b>3. Data Yako</b><br>Data yote ya biashara yako ni mali yako.</p>
-    <p style="margin-bottom:12px"><b>4. Matumizi Yaliyokatazwa</b><br>Hairuhusiwi kutumia mfumo kwa shughuli za kinyume cha sheria.</p>
-    <p><b>5. Kikomo cha Dhima</b><br>Mfumo unatolewa "kama ulivyo".</p>
+    <p><b>4. Kikomo cha Dhima</b><br>Mfumo unatolewa "kama ulivyo".</p>
   `);
 }
 function showPrivacy(){
@@ -716,8 +654,8 @@ function startSession(){
   checkAutoBackup();
 }
 
-function logout(){
-  if(!confirm('Una uhakika unataka kutoka?')) return;
+async function logout(){
+  if(!(await myConfirm('Una uhakika unataka kutoka kwenye mfumo?'))) return;
   logAction('logout', 'Ametoka kwenye mfumo');
   clearSession();
   state.user = null; state.profile = null;
@@ -838,7 +776,7 @@ async function saveProduct(e, id){
   e.preventDefault();
   const data = { jina: document.getElementById('pName').value.trim(), aina: document.getElementById('pCat').value.trim() || 'Nyingine', bei_halisi: +document.getElementById('pCost').value || 0, bei_kutoka: +document.getElementById('pPrice').value || 0, stock: +document.getElementById('pStock').value || 0, kipimo: document.getElementById('pUnit').value.trim() || 'kipande' };
   if(!data.jina) return toast('Weka jina', 'err');
-  if(data.bei_kutoka < data.bei_halisi && !confirm('Bei ndogo kuliko cost. Endelea?')) return;
+  if(data.bei_kutoka < data.bei_halisi && !(await myConfirm('Bei ya kuuza ni ndogo kuliko cost. Utaingia hasara. Endelea?'))) return;
   if(id){
     const { error } = await db.from('bidhaa').update(data).eq('id', id);
     if(error) return toast(error.message, 'err');
@@ -855,7 +793,7 @@ async function saveProduct(e, id){
 }
 
 async function delProduct(id){
-  if(!confirm('Futa bidhaa hii?')) return;
+  if(!(await myConfirm('Futa bidhaa hii? Haiwezi kurudishwa.'))) return;
   const list = await getProducts();
   const p = list.find(x => x.id === id);
   const { error } = await db.from('bidhaa').delete().eq('id', id);
@@ -1030,7 +968,7 @@ async function pgUsers(){
   `;
 }
 async function toggleUser(id, active){ const { error } = await db.from('watumiaji').update({ active: !active }).eq('id', id); if(error) return toast(error.message, 'err'); toast(!active?'Ameruhusiwa':'Amezimwa', 'ok'); logAction('badili_mtumiaji', id); render(); }
-async function delUser(id){ if(!confirm('Futa muuzaji huyu?')) return; const { error } = await db.from('watumiaji').delete().eq('id', id); if(error) return toast(error.message, 'err'); toast('Amefutwa', 'ok'); logAction('futa_mtumiaji', id); render(); }
+async function delUser(id){ if(!(await myConfirm('Futa muuzaji huyu kutoka kwenye biashara yako?'))) return; const { error } = await db.from('watumiaji').delete().eq('id', id); if(error) return toast(error.message, 'err'); toast('Amefutwa', 'ok'); logAction('futa_mtumiaji', id); render(); }
 
 async function pgAudit(){
   if(!isOwner()) return '<div class="empty"><div class="e">🔒</div><div>Ni kwa mmiliki</div></div>';
@@ -1114,8 +1052,8 @@ function uploadLogo(event){
   reader.onerror = () => toast('Imeshindwa kusoma picha', 'err');
   reader.readAsDataURL(file);
 }
-function removeLogoImage(){
-  if(!confirm('Ondoa picha ya logo?')) return;
+async function removeLogoImage(){
+  if(!(await myConfirm('Ondoa picha ya logo?'))) return;
   const b = getBrand();
   delete b.logoImage;
   saveBrand(b);
@@ -1139,8 +1077,8 @@ function saveBranding(){
   logAction('badili_branding', 'Jina: ' + b.name);
   render();
 }
-function resetBranding(){
-  if(!confirm('Rudisha branding kwa default?')) return;
+async function resetBranding(){
+  if(!(await myConfirm('Rudisha branding kwa default? Mabadiliko yote yatafutwa.'))) return;
   localStorage.removeItem(BRAND_KEY);
   applyBrand();
   toast('Branding imerudishwa', 'ok');
@@ -1231,27 +1169,27 @@ async function pgSettings(){
     </div>
     ` : ''}
     <div class="card">
-      <h3>📲 Weka kama App</h3>
-      <p style="font-size:13.5px;color:var(--muted);line-height:1.7">Bonyeza menu ya browser kisha <b>"Add to Home Screen"</b>.</p>
-      <button class="btn ghost full" style="margin-top:10px" onclick="installPWA()">📲 Weka kwenye Simu</button>
-    </div>
-    <div class="card">
-   ${isOwner() ? `
+     ${isOwner() ? `
 <div class="card">
   <h3>🎨 Branding</h3>
-  <p style="font-size:13.5px;color:var(--muted);margin-bottom:12px">Badilisha jina, logo, na mawasiliano ya mfumo.</p>
+  <p style="font-size:13.5px;color:var(--muted);line-height:1.7;margin-bottom:12px">Badilisha jina, logo, na mawasiliano ya mfumo wako.</p>
   <button class="btn primary full" style="margin-top:0" onclick="go('branding')">🎨 Nenda Branding</button>
 </div>
 ` : ''}
 
 <div class="card">
-  <h3>📜 Kisheria</h3>>
+  <h3>📲 Weka kama App</h3>
+      <p style="font-size:13.5px;color:var(--muted);line-height:1.7">Bonyeza menu ya browser kisha <b>"Add to Home Screen"</b>.</p>
+      <button class="btn ghost full" style="margin-top:10px" onclick="installPWA()">📲 Weka kwenye Simu</button>
+    </div>
+    <div class="card">
+      <h3>📜 Kisheria</h3>
       <button class="btn ghost full" style="margin-top:0" onclick="showTerms()">Masharti ya Matumizi</button>
       <button class="btn ghost full" style="margin-top:8px" onclick="showPrivacy()">Sera ya Faragha</button>
     </div>
     <div class="card"><h3>💾 Hifadhi Nakala (JSON)</h3><p style="font-size:13.5px;color:var(--muted);margin-bottom:12px">Pakua data yote kama faili la JSON.</p><button class="btn ghost full" style="margin-top:0" onclick="exportData()">⬇️ Pakua Data (JSON)</button></div>
     <button class="btn ghost full" onclick="logout()">🚪 Toka</button>
-    <p style="text-align:center;color:var(--muted);font-size:12px;margin-top:22px">${esc(brand.name||'BiasharaPro')} v7.1 · Liquid Glass</p>
+    <p style="text-align:center;color:var(--muted);font-size:12px;margin-top:22px">${esc(brand.name||'BiasharaPro')} v7.2 · Liquid Glass</p>
   `;
 }
 
@@ -1318,7 +1256,7 @@ async function exportData(){
 }
 
 function showModal(title, body){ const m = document.getElementById('modal'); m.innerHTML = `<div class="modal-box" onclick="event.stopPropagation()"><div class="modal-head"><h3>${esc(title)}</h3><button class="icon-btn" onclick="closeModal()">✕</button></div><div class="modal-body">${body}</div></div>`; m.classList.remove('hidden'); m.onclick = closeModal; }
-function closeModal(){ document.getElementById('modal').classList.add('hidden'); document.getElementById('modal').innerHTML = ''; }
+function closeModal(){ const m = document.getElementById('modal'); m.classList.add('hidden'); m.innerHTML = ''; m.onclick = null; if(confirmResolveFn) confirmResolveFn(false); }
 document.addEventListener('keydown', e => { if(e.key === 'Escape') closeModal(); });
 </script>
 </body>
