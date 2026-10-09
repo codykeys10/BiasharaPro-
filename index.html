@@ -3,184 +3,302 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#4f46e5">
+<meta name="theme-color" content="#5b4bff">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="BiasharaPro">
 <title>BiasharaPro</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/js-sha256/0.9.0/sha256.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-:root{--primary:#4f46e5;--primary2:#4338ca;--bg:#f1f5f9;--card:#fff;--text:#0f172a;--muted:#64748b;--border:#e2e8f0;--ok:#16a34a;--err:#dc2626;--warn:#f59e0b;--radius:14px}
-body{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.5}
+:root{
+  --primary:#5b4bff;
+  --primary2:#7c6cff;
+  --bg:#eef0ff;
+  --card:rgba(255,255,255,0.65);
+  --text:#0f172a;
+  --muted:#64748b;
+  --border:rgba(255,255,255,0.5);
+  --ok:#16a34a;
+  --err:#dc2626;
+  --warn:#f59e0b;
+  --radius:24px;
+  --glass-blur:blur(28px) saturate(180%);
+}
+html,body{min-height:100%}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',system-ui,sans-serif;
+  color:var(--text);font-size:15px;line-height:1.5;background:#eef0ff;
+  position:relative;overflow-x:hidden;-webkit-font-smoothing:antialiased;
+}
+body::before{content:'';position:fixed;inset:0;z-index:-2;background:linear-gradient(135deg,#e0e7ff 0%,#f0e7ff 50%,#ffe7f0 100%)}
+body::after{
+  content:'';position:fixed;inset:0;z-index:-1;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(120,90,255,0.45) 0%, transparent 40%),
+    radial-gradient(circle at 85% 15%, rgba(255,120,200,0.40) 0%, transparent 45%),
+    radial-gradient(circle at 75% 85%, rgba(80,180,255,0.45) 0%, transparent 45%),
+    radial-gradient(circle at 20% 90%, rgba(255,180,120,0.35) 0%, transparent 45%);
+  filter:blur(40px);pointer-events:none;
+}
 .hidden{display:none!important}
-button{font-family:inherit;cursor:pointer;border:none;background:none}
-input,select,textarea{font-family:inherit;font-size:15px;width:100%;padding:11px 12px;border:1px solid var(--border);border-radius:10px;background:#fff;color:var(--text);outline:none}
-input:focus,select:focus,textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(79,70,229,.12)}
-label{display:block;font-size:13px;font-weight:600;color:var(--muted);margin:12px 0 5px}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,select,textarea{
+  font-family:inherit;font-size:15px;width:100%;padding:13px 16px;
+  border:1px solid rgba(255,255,255,0.7);border-radius:16px;
+  background:rgba(255,255,255,0.55);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
+  color:var(--text);outline:none;transition:.25s;
+}
+input:focus,select:focus,textarea:focus{
+  background:rgba(255,255,255,0.85);border-color:rgba(91,75,255,0.5);
+  box-shadow:0 0 0 4px rgba(91,75,255,0.15);
+}
+label{display:block;font-size:13px;font-weight:600;color:var(--muted);margin:14px 0 6px;letter-spacing:-0.2px}
 
-#splash{position:fixed;inset:0;background:linear-gradient(135deg,#4f46e5,#7c3aed);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;transition:opacity .5s}
+#splash{
+  position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;color:#fff;transition:opacity .5s;
+  background:linear-gradient(135deg,#5b4bff,#a55bff 50%,#ff6cb5);overflow:hidden;
+}
+#splash::before{
+  content:'';position:absolute;inset:-50%;
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4) 0%, transparent 40%),
+    radial-gradient(circle at 70% 70%, rgba(255,255,255,0.3) 0%, transparent 40%);
+  filter:blur(30px);animation:rotateBg 20s linear infinite;
+}
+@keyframes rotateBg{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 #splash.hide{opacity:0;pointer-events:none}
-.splash-logo{width:90px;height:90px;border-radius:24px;background:rgba(255,255,255,.2);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:36px;margin-bottom:16px;animation:pulse 1.5s infinite;overflow:hidden}
+.splash-logo{
+  width:100px;height:100px;border-radius:28px;background:rgba(255,255,255,0.25);
+  backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);
+  border:1.5px solid rgba(255,255,255,0.5);
+  box-shadow:0 20px 60px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.6);
+  display:flex;align-items:center;justify-content:center;font-weight:900;font-size:40px;
+  margin-bottom:20px;animation:pulse 2s infinite;overflow:hidden;position:relative;z-index:1;
+}
 .splash-logo img{width:100%;height:100%;object-fit:cover}
-@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
-.splash-name{font-size:24px;font-weight:800;letter-spacing:1px}
-.splash-sub{font-size:13px;opacity:.85;margin-top:6px}
-.splash-loader{margin-top:30px;width:40px;height:4px;background:rgba(255,255,255,.25);border-radius:4px;overflow:hidden;position:relative}
-.splash-loader::before{content:'';position:absolute;left:-50%;top:0;width:50%;height:100%;background:#fff;border-radius:4px;animation:load 1s infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+.splash-name{font-size:26px;font-weight:800;letter-spacing:-0.5px;position:relative;z-index:1}
+.splash-sub{font-size:13.5px;opacity:.9;margin-top:6px;position:relative;z-index:1}
+.splash-loader{margin-top:32px;width:44px;height:5px;background:rgba(255,255,255,.3);border-radius:5px;overflow:hidden;position:relative;z-index:1}
+.splash-loader::before{content:'';position:absolute;left:-50%;top:0;width:50%;height:100%;background:#fff;border-radius:5px;animation:load 1s infinite}
 @keyframes load{0%{left:-50%}100%{left:100%}}
 
-#landing{min-height:100vh;background:linear-gradient(180deg,#4f46e5 0%,#7c3aed 60%,#2563eb 100%);color:#fff;padding:24px}
-.landing-wrap{max-width:1100px;margin:0 auto}
+#landing{min-height:100vh;color:#fff;padding:24px;position:relative;overflow:hidden;background:linear-gradient(135deg,#5b4bff 0%,#a55bff 50%,#ff6cb5 100%)}
+#landing::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 20% 20%, rgba(255,255,255,0.25) 0%, transparent 40%),radial-gradient(circle at 80% 80%, rgba(255,255,255,0.2) 0%, transparent 40%);pointer-events:none}
+.landing-wrap{max-width:1100px;margin:0 auto;position:relative;z-index:1}
 .landing-nav{display:flex;align-items:center;justify-content:space-between;padding:8px 0 20px;flex-wrap:wrap;gap:12px}
-.landing-brand{display:flex;align-items:center;gap:10px}
-.landing-brand .l-logo{width:44px;height:44px;border-radius:13px;background:rgba(255,255,255,.22);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:18px;overflow:hidden}
+.landing-brand{display:flex;align-items:center;gap:12px}
+.landing-brand .l-logo{
+  width:48px;height:48px;border-radius:16px;background:rgba(255,255,255,0.22);
+  backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);
+  border:1px solid rgba(255,255,255,0.4);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.5), 0 8px 24px rgba(0,0,0,0.15);
+  display:flex;align-items:center;justify-content:center;font-weight:900;font-size:19px;overflow:hidden;
+}
 .landing-brand .l-logo img{width:100%;height:100%;object-fit:cover}
-.landing-brand b{font-size:17px}
+.landing-brand b{font-size:18px;letter-spacing:-0.3px}
 .landing-nav .nav-cta{display:flex;gap:8px}
-.landing-nav .nav-cta button{padding:9px 16px;border-radius:10px;font-weight:700;font-size:14px}
-.landing-nav .nav-cta .ghost-btn{background:rgba(255,255,255,.15);color:#fff;backdrop-filter:blur(10px)}
-.landing-nav .nav-cta .solid-btn{background:#fff;color:var(--primary)}
+.landing-nav .nav-cta button{padding:10px 18px;border-radius:14px;font-weight:700;font-size:14px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.3);transition:.2s}
+.landing-nav .nav-cta .ghost-btn{background:rgba(255,255,255,.15);color:#fff}
+.landing-nav .nav-cta .solid-btn{background:rgba(255,255,255,0.95);color:var(--primary);box-shadow:0 8px 24px rgba(0,0,0,0.2)}
 .hero{text-align:center;padding:30px 0 40px}
-.hero .badge-hero{display:inline-block;padding:6px 14px;background:rgba(255,255,255,.18);border-radius:20px;font-size:12.5px;font-weight:600;margin-bottom:18px;backdrop-filter:blur(10px)}
-.hero h1{font-size:32px;font-weight:900;line-height:1.2;letter-spacing:-.5px;margin-bottom:14px}
-.hero h1 .grad{background:linear-gradient(90deg,#fbbf24,#f59e0b);-webkit-background-clip:text;background-clip:text;color:transparent}
-.hero p{font-size:15px;opacity:.92;max-width:520px;margin:0 auto 26px;line-height:1.7}
+.hero .badge-hero{display:inline-block;padding:8px 16px;border-radius:20px;background:rgba(255,255,255,.18);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.3);font-size:12.5px;font-weight:600;margin-bottom:20px}
+.hero h1{font-size:34px;font-weight:900;line-height:1.15;letter-spacing:-1px;margin-bottom:16px}
+.hero h1 .grad{background:linear-gradient(90deg,#fff,#ffe0b3);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{font-size:15.5px;opacity:.95;max-width:520px;margin:0 auto 28px;line-height:1.7}
 .hero-cta{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
-.hero-cta button{padding:14px 26px;border-radius:12px;font-weight:800;font-size:15px}
-.hero-cta .p1{background:#fff;color:var(--primary);box-shadow:0 10px 30px rgba(0,0,0,.2)}
-.hero-cta .p2{background:rgba(255,255,255,.15);color:#fff;backdrop-filter:blur(10px);border:1.5px solid rgba(255,255,255,.3)}
+.hero-cta button{padding:15px 28px;border-radius:18px;font-weight:800;font-size:15px;transition:.2s;border:1px solid rgba(255,255,255,0.3)}
+.hero-cta .p1{background:rgba(255,255,255,0.98);color:var(--primary);box-shadow:0 12px 36px rgba(0,0,0,0.25)}
+.hero-cta .p2{background:rgba(255,255,255,.15);color:#fff;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
 .features-grid{display:grid;grid-template-columns:1fr;gap:14px;margin-top:30px}
 @media(min-width:640px){.features-grid{grid-template-columns:repeat(2,1fr)}}
 @media(min-width:900px){.features-grid{grid-template-columns:repeat(3,1fr)}}
-.feature{background:rgba(255,255,255,.12);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.18);border-radius:16px;padding:18px}
-.feature .f-icon{width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:12px}
-.feature b{font-size:15.5px;display:block;margin-bottom:6px}
-.feature p{font-size:13.5px;opacity:.9;line-height:1.6}
-.landing-footer{text-align:center;padding:30px 0 10px;font-size:13px;opacity:.85}
-.landing-footer a{color:#fff;text-decoration:underline;margin:0 6px;cursor:pointer}
+.feature{background:rgba(255,255,255,.14);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border:1px solid rgba(255,255,255,0.28);border-radius:22px;padding:20px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.4), 0 8px 24px rgba(0,0,0,0.1);transition:.2s}
+.feature .f-icon{width:48px;height:48px;border-radius:14px;background:rgba(255,255,255,.22);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:14px}
+.feature b{font-size:16px;display:block;margin-bottom:6px;letter-spacing:-0.3px}
+.feature p{font-size:13.5px;opacity:.92;line-height:1.6}
+.landing-footer{text-align:center;padding:30px 0 10px;font-size:13px;opacity:.88}
+.landing-footer a{color:#fff;text-decoration:none;margin:0 8px;cursor:pointer;padding:6px 10px;border-radius:10px;background:rgba(255,255,255,0.12);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);display:inline-block;border:1px solid rgba(255,255,255,0.2)}
 
-.auth{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:linear-gradient(135deg,#4f46e5,#7c3aed 60%,#2563eb)}
-.auth-card{background:#fff;width:100%;max-width:440px;border-radius:20px;padding:26px 22px;box-shadow:0 20px 50px rgba(0,0,0,.25)}
-.auth-logo{width:60px;height:60px;border-radius:18px;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:22px;margin:0 auto 12px;overflow:hidden}
+.auth{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;position:relative;overflow:hidden}
+.auth::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,#5b4bff 0%,#a55bff 50%,#ff6cb5 100%);z-index:0}
+.auth::after{content:'';position:absolute;inset:0;z-index:0;background:radial-gradient(circle at 20% 20%, rgba(255,255,255,0.25) 0%, transparent 40%),radial-gradient(circle at 80% 80%, rgba(255,255,255,0.2) 0%, transparent 40%)}
+.auth-card{background:rgba(255,255,255,0.75);backdrop-filter:blur(40px) saturate(200%);-webkit-backdrop-filter:blur(40px) saturate(200%);border:1.5px solid rgba(255,255,255,0.65);box-shadow:0 24px 60px rgba(31,38,135,0.25), inset 0 1px 0 rgba(255,255,255,0.7);width:100%;max-width:440px;border-radius:28px;padding:30px 24px;position:relative;z-index:1}
+.auth-logo{width:70px;height:70px;border-radius:22px;background:linear-gradient(135deg,#5b4bff,#a55bff);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:24px;margin:0 auto 14px;overflow:hidden;box-shadow:0 12px 30px rgba(91,75,255,0.35), inset 0 1px 0 rgba(255,255,255,0.3)}
 .auth-logo img{width:100%;height:100%;object-fit:cover}
-.auth h1{text-align:center;font-size:21px;margin-bottom:4px}
-.auth p.sub{text-align:center;color:var(--muted);font-size:13px;margin-bottom:18px}
-.auth .back-link{display:block;text-align:center;font-size:13px;color:var(--muted);margin-top:14px;text-decoration:underline;cursor:pointer}
-.version{text-align:center;font-size:11px;color:var(--muted);margin-top:8px}
-.tabs{display:flex;background:#f1f5f9;border-radius:12px;padding:4px;margin-bottom:6px}
-.tabs button{flex:1;padding:9px;border-radius:9px;font-weight:600;font-size:14px;color:var(--muted)}
-.tabs button.on{background:#fff;color:var(--primary);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.auth h1{text-align:center;font-size:24px;margin-bottom:6px;letter-spacing:-0.5px;font-weight:800}
+.auth p.sub{text-align:center;color:var(--muted);font-size:13.5px;margin-bottom:20px}
+.auth .back-link{display:block;text-align:center;font-size:13.5px;color:var(--muted);margin-top:16px;cursor:pointer;font-weight:600}
+.version{text-align:center;font-size:11px;color:var(--muted);margin-top:10px;opacity:.7}
+.tabs{display:flex;background:rgba(255,255,255,0.5);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.6);border-radius:16px;padding:4px;margin-bottom:8px}
+.tabs button{flex:1;padding:11px;border-radius:12px;font-weight:700;font-size:14px;color:var(--muted);transition:.2s}
+.tabs button.on{background:rgba(255,255,255,0.98);color:var(--primary);box-shadow:0 4px 12px rgba(91,75,255,0.15)}
 
-.app{display:none}.app.on{display:block}
+.app{display:none}.app.on{display:block;position:relative;z-index:1}
 .sidebar{display:none}.main{min-width:0}
-.topbar{position:sticky;top:0;z-index:50;background:#fff;border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;gap:12px}
-.topbar .tb-logo{width:36px;height:36px;border-radius:11px;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex:none;overflow:hidden}
+.topbar{position:sticky;top:0;z-index:50;background:rgba(255,255,255,0.65);backdrop-filter:blur(30px) saturate(180%);-webkit-backdrop-filter:blur(30px) saturate(180%);border-bottom:1px solid rgba(255,255,255,0.5);padding:14px 16px;display:flex;align-items:center;gap:12px}
+.topbar .tb-logo{width:40px;height:40px;border-radius:13px;background:linear-gradient(135deg,#5b4bff,#a55bff);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;flex:none;overflow:hidden;box-shadow:0 6px 16px rgba(91,75,255,0.3)}
 .topbar .tb-logo img{width:100%;height:100%;object-fit:cover}
-.topbar b{font-size:15px;display:block;line-height:1.2}
-.topbar small{color:var(--muted);font-size:11.5px}
-.page{padding:16px 16px 96px;max-width:1100px;margin:0 auto}
-h2.pt{font-size:20px;margin-bottom:3px}
-p.ps{color:var(--muted);font-size:13px;margin-bottom:16px}
-.bnav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--border);display:flex;z-index:60;padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
-.bnav a{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 2px;font-size:10.5px;font-weight:600;color:var(--muted);border-radius:10px}
-.bnav a span{font-size:19px;line-height:1}
-.bnav a.active{color:var(--primary);background:#eef2ff}
-@media(min-width:900px){.app.on{display:flex}.sidebar{display:flex;flex-direction:column;width:245px;flex:none;background:#fff;border-right:1px solid var(--border);height:100vh;position:sticky;top:0}.bnav{display:none}.topbar{display:none}.page{padding:24px 28px 40px}}
-.brand{display:flex;align-items:center;gap:11px;padding:18px 18px 14px;border-bottom:1px solid var(--border)}
-.brand .logo{width:42px;height:42px;border-radius:13px;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;flex:none;overflow:hidden}
+.topbar b{font-size:15.5px;display:block;line-height:1.2;letter-spacing:-0.3px}
+.topbar small{color:var(--muted);font-size:12px}
+.page{padding:16px 16px 130px;max-width:1100px;margin:0 auto}
+h2.pt{font-size:24px;margin-bottom:4px;letter-spacing:-0.6px;font-weight:800}
+p.ps{color:var(--muted);font-size:13.5px;margin-bottom:18px}
+
+/* ===== FLOATING BOTTOM NAV (iOS 26 Style) ===== */
+.bnav{
+  position:fixed;
+  bottom:calc(16px + env(safe-area-inset-bottom));
+  left:16px;
+  right:16px;
+  z-index:60;
+  max-width:520px;
+  margin:0 auto;
+  background:rgba(255,255,255,0.72);
+  backdrop-filter:blur(44px) saturate(200%);
+  -webkit-backdrop-filter:blur(44px) saturate(200%);
+  border:1px solid rgba(255,255,255,0.75);
+  border-radius:34px;
+  display:flex;
+  padding:7px 7px;
+  gap:2px;
+  box-shadow:
+    0 16px 48px rgba(31,38,135,0.22),
+    0 4px 14px rgba(31,38,135,0.10),
+    inset 0 1px 0 rgba(255,255,255,0.9);
+  transition:transform .3s, box-shadow .3s;
+}
+.bnav a{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:2px;
+  padding:9px 4px 8px;
+  font-size:10px;
+  font-weight:700;
+  color:var(--muted);
+  border-radius:28px;
+  transition:all .3s cubic-bezier(.34,1.56,.64,1);
+  position:relative;
+  letter-spacing:-0.2px;
+  cursor:pointer;
+}
+.bnav a span{font-size:21px;line-height:1;transition:transform .3s cubic-bezier(.34,1.56,.64,1);display:block}
+.bnav a.active{
+  color:var(--primary);
+  background:linear-gradient(135deg,rgba(91,75,255,0.18),rgba(165,91,255,0.14));
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.7),
+    0 4px 12px rgba(91,75,255,0.18);
+}
+.bnav a.active span{transform:scale(1.15)}
+.bnav a:active{transform:scale(.94)}
+
+@media(min-width:900px){
+  .app.on{display:flex}
+  .sidebar{display:flex;flex-direction:column;width:250px;flex:none;background:rgba(255,255,255,0.55);backdrop-filter:blur(30px) saturate(180%);-webkit-backdrop-filter:blur(30px) saturate(180%);border-right:1px solid rgba(255,255,255,0.5);height:100vh;position:sticky;top:0}
+  .bnav{display:none}.topbar{display:none}.page{padding:28px 32px 40px}
+}
+.brand{display:flex;align-items:center;gap:11px;padding:20px 18px 16px;border-bottom:1px solid rgba(255,255,255,0.4)}
+.brand .logo{width:44px;height:44px;border-radius:15px;background:linear-gradient(135deg,#5b4bff,#a55bff);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;flex:none;overflow:hidden;box-shadow:0 8px 20px rgba(91,75,255,0.3)}
 .brand .logo img{width:100%;height:100%;object-fit:cover}
-.bname{font-weight:700;font-size:15px;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bname{font-weight:800;font-size:15px;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:-0.3px}
 .brole{font-size:11.5px;color:var(--muted)}
-.nav{flex:1;padding:12px 10px;overflow-y:auto}
-.nav-item{display:flex;align-items:center;gap:11px;padding:11px 13px;border-radius:11px;font-weight:600;font-size:14px;color:var(--muted);cursor:pointer;margin-bottom:3px}
-.nav-item:hover{background:#f8fafc;color:var(--text)}
-.nav-item.active{background:#eef2ff;color:var(--primary)}
-.nav-item span{font-size:17px;width:22px;text-align:center}
-.side-foot{border-top:1px solid var(--border);padding:14px}
+.nav{flex:1;padding:14px 12px;overflow-y:auto}
+.nav-item{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;font-weight:600;font-size:14px;color:var(--muted);cursor:pointer;margin-bottom:4px;transition:.2s}
+.nav-item:hover{background:rgba(255,255,255,0.6);color:var(--text)}
+.nav-item.active{background:rgba(91,75,255,0.15);color:var(--primary);box-shadow:inset 0 1px 0 rgba(255,255,255,0.5)}
+.nav-item span{font-size:18px;width:24px;text-align:center}
+.side-foot{border-top:1px solid rgba(255,255,255,0.4);padding:14px}
 .uinfo{margin-bottom:10px}
 .uname{font-weight:700;font-size:14px}
 .urole{font-size:12px;color:var(--muted)}
-.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:11px;margin-bottom:18px}
+
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:18px}
 @media(min-width:640px){.stats{grid-template-columns:repeat(4,1fr)}}
-.stat{background:var(--card);border-radius:var(--radius);padding:14px;border:1px solid var(--border)}
-.stat .lb{font-size:11.5px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.3px}
-.stat .vl{font-size:19px;font-weight:800;margin-top:5px}
-.stat.g{background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;border:none}
-.stat.g .lb{color:rgba(255,255,255,.85)}
-.stat.p{background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border:none}
-.stat.p .lb{color:rgba(255,255,255,.85)}
-.stat.o{background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;border:none}
-.stat.o .lb{color:rgba(255,255,255,.85)}
-.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:14px}
-.card h3{font-size:15px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:8px}
-.head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;flex-wrap:wrap}
-.btn{padding:10px 16px;border-radius:11px;font-weight:700;font-size:14px;display:inline-flex;align-items:center;justify-content:center;gap:6px;transition:.15s}
-.btn:active{transform:scale(.97)}
-.btn.primary{background:var(--primary);color:#fff}
-.btn.primary:hover{background:var(--primary2)}
-.btn.ghost{background:#f1f5f9;color:var(--text)}
-.btn.ghost:hover{background:#e2e8f0}
-.btn.danger{background:#fee2e2;color:var(--err)}
-.btn.ok{background:#dcfce7;color:var(--ok)}
-.btn.green{background:#25D366;color:#fff}
-.btn.full{width:100%;margin-top:18px;padding:13px}
-.btn.sm{padding:7px 12px;font-size:13px;border-radius:9px}
-.btn.xs{padding:5px 9px;font-size:12px;border-radius:8px}
-.tw{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -16px;padding:0 16px}
+.stat{background:rgba(255,255,255,0.6);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border:1px solid rgba(255,255,255,0.6);box-shadow:inset 0 1px 0 rgba(255,255,255,0.7), 0 4px 16px rgba(31,38,135,0.08);border-radius:22px;padding:16px;transition:.2s}
+.stat .lb{font-size:11.5px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+.stat .vl{font-size:20px;font-weight:800;margin-top:6px;letter-spacing:-0.4px}
+.stat.g{background:linear-gradient(135deg,rgba(22,163,74,0.9),rgba(21,128,61,0.85));color:#fff;border:1px solid rgba(255,255,255,0.35)}
+.stat.g .lb{color:rgba(255,255,255,.9)}
+.stat.p{background:linear-gradient(135deg,rgba(91,75,255,0.92),rgba(165,91,255,0.85));color:#fff;border:1px solid rgba(255,255,255,0.35)}
+.stat.p .lb{color:rgba(255,255,255,.9)}
+.stat.o{background:linear-gradient(135deg,rgba(245,158,11,0.92),rgba(217,119,6,0.85));color:#fff;border:1px solid rgba(255,255,255,0.35)}
+.stat.o .lb{color:rgba(255,255,255,.9)}
+.card{background:rgba(255,255,255,0.6);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border:1px solid rgba(255,255,255,0.6);box-shadow:inset 0 1px 0 rgba(255,255,255,0.7), 0 8px 24px rgba(31,38,135,0.08);border-radius:22px;padding:18px;margin-bottom:16px}
+.card h3{font-size:16px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:8px;font-weight:800;letter-spacing:-0.3px}
+.head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.btn{padding:11px 18px;border-radius:14px;font-weight:700;font-size:14px;display:inline-flex;align-items:center;justify-content:center;gap:7px;transition:.2s;border:1px solid transparent}
+.btn:active{transform:scale(.96)}
+.btn.primary{background:linear-gradient(135deg,#5b4bff,#7c6cff);color:#fff;box-shadow:0 8px 20px rgba(91,75,255,0.3), inset 0 1px 0 rgba(255,255,255,0.3);border-color:rgba(255,255,255,0.2)}
+.btn.ghost{background:rgba(255,255,255,0.6);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-color:rgba(255,255,255,0.7);color:var(--text);box-shadow:inset 0 1px 0 rgba(255,255,255,0.7)}
+.btn.danger{background:linear-gradient(135deg,rgba(220,38,38,0.9),rgba(185,28,28,0.85));color:#fff;box-shadow:0 8px 20px rgba(220,38,38,0.25)}
+.btn.ok{background:linear-gradient(135deg,rgba(22,163,74,0.9),rgba(21,128,61,0.85));color:#fff;box-shadow:0 8px 20px rgba(22,163,74,0.25)}
+.btn.green{background:linear-gradient(135deg,#25D366,#128C7E);color:#fff;box-shadow:0 8px 20px rgba(37,211,102,0.3)}
+.btn.full{width:100%;margin-top:18px;padding:15px}
+.btn.sm{padding:8px 13px;font-size:13px;border-radius:11px}
+.btn.xs{padding:6px 10px;font-size:12px;border-radius:9px}
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -18px;padding:0 18px}
 table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:520px}
-th{text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);padding:8px 10px;border-bottom:2px solid var(--border);white-space:nowrap}
-td{padding:11px 10px;border-bottom:1px solid var(--border);white-space:nowrap}
+th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);padding:10px 12px;border-bottom:1px solid rgba(255,255,255,0.5);white-space:nowrap;font-weight:700}
+td{padding:13px 12px;border-bottom:1px solid rgba(255,255,255,0.4);white-space:nowrap;font-size:13.5px}
 tr:last-child td{border-bottom:none}
 .num{text-align:right;font-variant-numeric:tabular-nums}
 .pos{color:var(--ok);font-weight:700}
 .neg{color:var(--err);font-weight:700}
-.badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11.5px;font-weight:700}
-.badge.ok{background:#dcfce7;color:#15803d}
-.badge.warn{background:#fef3c7;color:#b45309}
-.badge.err{background:#fee2e2;color:#b91c1c}
-.badge.info{background:#e0e7ff;color:#4338ca}
-.empty{text-align:center;padding:38px 18px;color:var(--muted)}
-.empty .e{font-size:42px;margin-bottom:10px;opacity:.6}
-.hint{background:#f8fafc;border:1px dashed var(--border);border-radius:10px;padding:10px 12px;font-size:13px;margin-top:14px;color:var(--muted);line-height:1.7}
+.badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:11.5px;font-weight:700}
+.badge.ok{background:rgba(22,163,74,0.15);color:#15803d}
+.badge.warn{background:rgba(245,158,11,0.18);color:#b45309}
+.badge.err{background:rgba(220,38,38,0.15);color:#b91c1c}
+.badge.info{background:rgba(91,75,255,0.15);color:#4338ca}
+.empty{text-align:center;padding:44px 18px;color:var(--muted)}
+.empty .e{font-size:48px;margin-bottom:12px;opacity:.6}
+.hint{background:rgba(255,255,255,0.5);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px dashed rgba(255,255,255,0.7);border-radius:16px;padding:12px 14px;font-size:13px;margin-top:14px;color:var(--muted);line-height:1.7}
 .hint b{color:var(--text)}
-.code-box{background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;padding:14px;border-radius:12px;text-align:center;margin:12px 0}
-.code-box .code{font-size:26px;font-weight:900;letter-spacing:3px;font-family:monospace}
-.modal{position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:200;display:flex;align-items:flex-end;justify-content:center;padding:0;backdrop-filter:blur(2px)}
+.code-box{background:linear-gradient(135deg,#5b4bff,#a55bff);color:#fff;padding:18px;border-radius:20px;text-align:center;margin:14px 0;box-shadow:0 12px 32px rgba(91,75,255,0.35), inset 0 1px 0 rgba(255,255,255,0.3);border:1px solid rgba(255,255,255,0.25)}
+.code-box .code{font-size:28px;font-weight:900;letter-spacing:4px;font-family:ui-monospace,monospace}
+.modal{position:fixed;inset:0;z-index:200;display:flex;align-items:flex-end;justify-content:center;padding:0;background:rgba(15,23,42,0.35);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
 @media(min-width:600px){.modal{align-items:center;padding:20px}}
-.modal-box{background:#fff;width:100%;max-width:460px;border-radius:20px 20px 0 0;max-height:92vh;overflow-y:auto;animation:up .22s ease}
-@media(min-width:600px){.modal-box{border-radius:20px}}
-@keyframes up{from{transform:translateY(30px);opacity:0}to{transform:none;opacity:1}}
-.modal-head{position:sticky;top:0;background:#fff;display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--border);z-index:2}
-.modal-head h3{font-size:16px}
-.modal-body{padding:16px 18px 22px;line-height:1.7;font-size:14.5px}
-.icon-btn{width:32px;height:32px;border-radius:9px;background:#f1f5f9;color:var(--muted);font-size:15px;display:flex;align-items:center;justify-content:center}
-.toast{position:fixed;left:50%;bottom:88px;transform:translate(-50%,20px);background:#0f172a;color:#fff;padding:12px 20px;border-radius:12px;font-size:14px;font-weight:600;z-index:300;opacity:0;pointer-events:none;transition:.25s;max-width:88vw;text-align:center}
+.modal-box{background:rgba(255,255,255,0.85);backdrop-filter:blur(40px) saturate(200%);-webkit-backdrop-filter:blur(40px) saturate(200%);border:1.5px solid rgba(255,255,255,0.7);width:100%;max-width:460px;border-radius:28px 28px 0 0;max-height:92vh;overflow-y:auto;animation:up .3s cubic-bezier(.34,1.56,.64,1);box-shadow:0 -20px 60px rgba(31,38,135,0.25), inset 0 1px 0 rgba(255,255,255,0.7)}
+@media(min-width:600px){.modal-box{border-radius:28px}}
+@keyframes up{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
+.modal-head{position:sticky;top:0;background:rgba(255,255,255,0.75);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid rgba(255,255,255,0.5);z-index:2}
+.modal-head h3{font-size:17px;font-weight:800;letter-spacing:-0.3px}
+.modal-body{padding:18px 20px 24px;line-height:1.7;font-size:14.5px}
+.icon-btn{width:34px;height:34px;border-radius:12px;background:rgba(255,255,255,0.6);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.7);color:var(--muted);font-size:15px;display:flex;align-items:center;justify-content:center}
+.toast{position:fixed;left:50%;bottom:110px;transform:translate(-50%,20px);background:rgba(15,23,42,0.9);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);color:#fff;padding:14px 22px;border-radius:18px;font-size:14px;font-weight:600;z-index:300;opacity:0;pointer-events:none;transition:.3s;max-width:88vw;text-align:center;border:1px solid rgba(255,255,255,0.15);box-shadow:0 12px 40px rgba(0,0,0,0.3)}
 .toast.show{opacity:1;transform:translate(-50%,0)}
-.toast.ok{background:#15803d}.toast.err{background:#b91c1c}
-@media(min-width:900px){.toast{bottom:30px}}
-.chart{display:flex;align-items:flex-end;gap:7px;height:130px;padding-top:10px;overflow-x:auto}
-.chart .bar{flex:1;min-width:26px;display:flex;flex-direction:column;align-items:center;gap:5px;height:100%;justify-content:flex-end}
-.chart .fill{width:100%;background:linear-gradient(180deg,#6366f1,#4f46e5);border-radius:7px 7px 3px 3px;min-height:4px;transition:.4s}
-.chart .lab{font-size:10.5px;color:var(--muted);font-weight:600}
+.toast.ok{background:rgba(21,128,61,0.92)}
+.toast.err{background:rgba(185,28,28,0.92)}
+@media(min-width:900px){.toast{bottom:36px}}
+.chart{display:flex;align-items:flex-end;gap:8px;height:140px;padding-top:10px;overflow-x:auto}
+.chart .bar{flex:1;min-width:28px;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end}
+.chart .fill{width:100%;border-radius:10px 10px 4px 4px;min-height:6px;transition:.4s;background:linear-gradient(180deg,#7c6cff,#5b4bff);box-shadow:0 4px 12px rgba(91,75,255,0.3)}
+.chart .lab{font-size:10.5px;color:var(--muted);font-weight:700}
 .chart .val{font-size:9.5px;color:var(--muted);font-weight:700}
-.switch{position:relative;display:inline-block;width:48px;height:26px}
+.switch{position:relative;display:inline-block;width:52px;height:30px}
 .switch input{opacity:0;width:0;height:0}
-.slider{position:absolute;cursor:pointer;inset:0;background:#cbd5e1;border-radius:26px;transition:.3s}
-.slider:before{content:"";position:absolute;height:20px;width:20px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s}
-.switch input:checked + .slider{background:var(--primary)}
+.slider{position:absolute;cursor:pointer;inset:0;background:rgba(203,213,225,0.7);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.6);border-radius:30px;transition:.3s}
+.slider:before{content:"";position:absolute;height:24px;width:24px;left:3px;bottom:2.5px;background:#fff;border-radius:50%;transition:.3s;box-shadow:0 2px 6px rgba(0,0,0,0.15)}
+.switch input:checked + .slider{background:linear-gradient(135deg,#5b4bff,#a55bff);border-color:transparent}
 .switch input:checked + .slider:before{transform:translateX(22px)}
-.file-input{padding:8px;border:1px dashed var(--border);border-radius:10px;background:#f8fafc;font-size:13px}
-.logo-preview{width:90px;height:90px;border-radius:22px;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:34px;margin:12px auto;overflow:hidden}
+.file-input{padding:10px;border:1px dashed rgba(255,255,255,0.8);border-radius:14px;background:rgba(255,255,255,0.5);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);font-size:13px}
+.logo-preview{width:100px;height:100px;border-radius:26px;background:linear-gradient(135deg,#5b4bff,#a55bff);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:38px;margin:14px auto;overflow:hidden;box-shadow:0 12px 32px rgba(91,75,255,0.35), inset 0 1px 0 rgba(255,255,255,0.3);border:2px solid rgba(255,255,255,0.4)}
 .logo-preview img{width:100%;height:100%;object-fit:cover}
-.logo-upload-btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:11px 16px;border-radius:10px;background:#f1f5f9;color:var(--text);font-weight:700;font-size:14px;cursor:pointer;border:1.5px dashed var(--border);transition:.15s;width:100%}
-.logo-upload-btn:hover{background:#e2e8f0}
+.logo-upload-btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:13px 16px;border-radius:16px;background:rgba(255,255,255,0.6);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1.5px dashed rgba(255,255,255,0.8);color:var(--text);font-weight:700;font-size:14px;cursor:pointer;transition:.2s;width:100%}
 .logo-upload-btn input{display:none}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(91,75,255,0.3);border-radius:10px}
 </style>
 </head>
 <body>
 
-<!-- SPLASH -->
 <div id="splash">
   <div class="splash-logo" id="splashLogo">BP</div>
   <div class="splash-name" id="splashName">BiasharaPro</div>
@@ -188,7 +306,6 @@ tr:last-child td{border-bottom:none}
   <div class="splash-loader"></div>
 </div>
 
-<!-- LANDING -->
 <div id="landing" class="hidden">
   <div class="landing-wrap">
     <div class="landing-nav">
@@ -203,7 +320,7 @@ tr:last-child td{border-bottom:none}
     </div>
     <div class="hero">
       <div class="badge-hero">✨ Mfumo wa kisasa wa biashara</div>
-      <h1>Simamia biashara yako sasa <span class="grad">kwa urahisi</span></h1>
+      <h1>Simamia biashara yako <span class="grad">kwa urahisi</span></h1>
       <p>Rekodi mauzo, fuatilia faida, simamia stock, na kagua utendaji wa wauzaji wako — vyote mahali pamoja.</p>
       <div class="hero-cta">
         <button class="p1" onclick="showAuth('register')">🚀 Anza Bure</button>
@@ -222,20 +339,19 @@ tr:last-child td{border-bottom:none}
       <div class="feature"><div class="f-icon">💾</div><b>Auto Backup</b><p>Backup ya kila siku inapakuliwa yenyewe.</p></div>
     </div>
     <div class="landing-footer">
-      <p style="margin-bottom:8px">
-        <a onclick="showTerms()">Masharti ya Matumizi</a> ·
-        <a onclick="showPrivacy()">Sera ya Faragha</a>
+      <p style="margin-bottom:12px">
+        <a onclick="showTerms()">Masharti</a>
+        <a onclick="showPrivacy()">Faragha</a>
       </p>
-      <p style="margin-top:12px"><span id="contactLine">© 2025 BiasharaPro. Haki zote zimehifadhiwa.</span></p>
+      <p><span id="contactLine">© 2025 BiasharaPro. Haki zote zimehifadhiwa.</span></p>
     </div>
   </div>
 </div>
 
-<!-- AUTH -->
 <div class="auth hidden" id="authScreen">
   <div class="auth-card">
-    <div class="auth-logo" id="authLogo">CB</div>
-    <h1 id="authTitle">CB BIASHARA</h1>
+    <div class="auth-logo" id="authLogo">BP</div>
+    <h1 id="authTitle">BiasharaPro</h1>
     <p class="sub">Simamia biashara yako kwa urahisi</p>
     <div class="tabs">
       <button id="tabLogin" class="on" type="button" onclick="switchAuth('login')">Ingia</button>
@@ -273,11 +389,10 @@ tr:last-child td{border-bottom:none}
       <button id="btnRegister" class="btn primary full" type="button" onclick="doRegister()">Tengeneza Akaunti</button>
     </div>
     <span class="back-link" onclick="showLanding()">← Rudi kwenye ukurasa wa mwanzo</span>
-    <div class="version">v6.1</div>
+    <div class="version">v7.1 · Liquid Glass</div>
   </div>
 </div>
 
-<!-- APP -->
 <div class="app" id="app">
   <aside class="sidebar">
     <div class="brand">
@@ -331,7 +446,7 @@ tr:last-child td{border-bottom:none}
 
 <script>
 /* =========================================================
-   BIASHARAPRO v6.1 — Branding + Logo Image
+   BIASHARAPRO v7.1 — Liquid Glass + Floating Nav
    ========================================================= */
 
 function log(msg){ console.log(msg); }
@@ -351,19 +466,8 @@ const BACKUP_KEY = 'bp_last_backup';
 const BRAND_KEY = 'bp_brand';
 let state = { user:null, profile:null, page:'dashboard', period:'all', search:'', regRole:'owner', reportView:'week' };
 
-/* ============ BRAND ============ */
-function getBrand(){
-  try { return JSON.parse(localStorage.getItem(BRAND_KEY)) || {}; } catch(e){ return {}; }
-}
-function saveBrand(b){
-  try {
-    localStorage.setItem(BRAND_KEY, JSON.stringify(b));
-  } catch(e){
-    toast('Kifaa kimejaa. Punguza ukubwa wa picha.', 'err');
-    return;
-  }
-  applyBrand();
-}
+function getBrand(){ try { return JSON.parse(localStorage.getItem(BRAND_KEY)) || {}; } catch(e){ return {}; } }
+function saveBrand(b){ try { localStorage.setItem(BRAND_KEY, JSON.stringify(b)); } catch(e){ toast('Kifaa kimejaa','err'); return; } applyBrand(); }
 function logoHTML(b){
   b = b || getBrand();
   if(b.logoImage) return '<img src="' + b.logoImage + '" alt="logo">';
@@ -373,45 +477,33 @@ function applyBrand(){
   const b = getBrand();
   const name = b.name || 'BiasharaPro';
   const tagline = b.tagline || 'Simamia biashara yako kwa urahisi';
-  const phone = b.phone || '';
-  const email = b.email || '';
-  const whatsapp = b.whatsapp || '';
+  const phone = b.phone || '', email = b.email || '', whatsapp = b.whatsapp || '';
   const lg = logoHTML(b);
-
   const sl = document.getElementById('splashLogo'); if(sl) sl.innerHTML = lg;
   const sn = document.getElementById('splashName'); if(sn) sn.textContent = name;
   const ll = document.getElementById('landLogo'); if(ll) ll.innerHTML = lg;
   const ln = document.getElementById('landName'); if(ln) ln.textContent = name;
-
   const cl = document.getElementById('contactLine');
   if(cl){
     const parts = [];
     if(phone) parts.push('📞 ' + phone);
     if(email) parts.push('✉️ ' + email);
     if(whatsapp) parts.push('💬 ' + whatsapp);
-    cl.innerHTML = parts.length
-      ? parts.join(' · ') + '<br>© 2025 ' + name + '. Haki zote zimehifadhiwa.'
-      : '© 2025 ' + name + '. Haki zote zimehifadhiwa.';
+    cl.innerHTML = parts.length ? parts.join(' · ') + '<br>© 2025 ' + name + '. Haki zote zimehifadhiwa.' : '© 2025 ' + name + '. Haki zote zimehifadhiwa.';
   }
-
   const al = document.getElementById('authLogo'); if(al) al.innerHTML = lg;
   const at = document.getElementById('authTitle'); if(at) at.textContent = name;
   const asub = document.querySelector('.auth .sub'); if(asub) asub.textContent = tagline;
-
   const sblogo = document.getElementById('sbLogo'); if(sblogo) sblogo.innerHTML = lg;
   const tblogo = document.getElementById('tbLogo'); if(tblogo) tblogo.innerHTML = lg;
   const sbbrand = document.getElementById('sbBrandName'); if(sbbrand) sbbrand.textContent = name;
-
   document.title = name;
-
-  // Favicon
   try {
     let url;
-    if(b.logoImage){
-      url = b.logoImage;
-    } else {
+    if(b.logoImage){ url = b.logoImage; }
+    else {
       const logoTxt = (b.logo || 'BP').slice(0,3).replace(/[<>&"']/g,'');
-      const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#4f46e5"/><text x="32" y="44" font-size="30" font-weight="900" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">${logoTxt}</text></svg>`;
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5b4bff"/><stop offset="1" stop-color="#a55bff"/></linearGradient></defs><rect width="64" height="64" rx="16" fill="url(#g)"/><text x="32" y="44" font-size="30" font-weight="900" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">${logoTxt}</text></svg>`;
       url = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg)));
     }
     let link = document.querySelector("link[rel*='icon']");
@@ -420,31 +512,24 @@ function applyBrand(){
   } catch(e){ console.warn('favicon:', e); }
 }
 
-/* ============ TERMS & PRIVACY ============ */
 function showTerms(){
   showModal('Masharti ya Matumizi', `
     <p style="margin-bottom:12px"><b>1. Kukubali Masharti</b><br>Kwa kutumia mfumo huu, unakubali masharti yote yaliyoorodheshwa hapa.</p>
-    <p style="margin-bottom:12px"><b>2. Akaunti Yako</b><br>Wewe ni mhusika wa usalama wa akaunti yako. Usishiriki password yako na mtu yeyote.</p>
-    <p style="margin-bottom:12px"><b>3. Data Yako</b><br>Data yote ya biashara yako ni mali yako. Unaweza kuipata, kuipunguza, au kuifuta wakati wowote.</p>
+    <p style="margin-bottom:12px"><b>2. Akaunti Yako</b><br>Wewe ni mhusika wa usalama wa akaunti yako. Usishiriki password yako.</p>
+    <p style="margin-bottom:12px"><b>3. Data Yako</b><br>Data yote ya biashara yako ni mali yako.</p>
     <p style="margin-bottom:12px"><b>4. Matumizi Yaliyokatazwa</b><br>Hairuhusiwi kutumia mfumo kwa shughuli za kinyume cha sheria.</p>
-    <p style="margin-bottom:12px"><b>5. Mabadiliko</b><br>Tunaweza kubadilisha masharti haya wakati wowote.</p>
-    <p><b>6. Kikomo cha Dhima</b><br>Mfumo unatolewa "kama ulivyo". Hatuwajibiki kwa hasara yoyote.</p>
+    <p><b>5. Kikomo cha Dhima</b><br>Mfumo unatolewa "kama ulivyo".</p>
   `);
 }
 function showPrivacy(){
   showModal('Sera ya Faragha', `
     <p style="margin-bottom:12px"><b>Data Tunayokusanya</b></p>
-    <ul style="padding-left:20px;margin-bottom:12px">
-      <li>Jina lako na username</li>
-      <li>Taarifa za biashara yako</li>
-    </ul>
-    <p style="margin-bottom:12px"><b>Jinsi Tunatumia Data</b><br>Data yako inatumika pekee kwa ajili ya kukupa huduma ya mfumo huu. Hatuuzi data yako.</p>
+    <ul style="padding-left:20px;margin-bottom:12px"><li>Jina lako na username</li><li>Taarifa za biashara yako</li></ul>
     <p style="margin-bottom:12px"><b>Usalama</b><br>Data inahifadhiwa Supabase (cloud). Password inahifadhiwa kwa SHA-256.</p>
-    <p><b>Haki Zako</b><br>Una haki ya kuomba data yako, kuifuta, au kuibadilisha wakati wowote.</p>
+    <p><b>Haki Zako</b><br>Una haki ya kuomba data yako, kuifuta, au kuibadilisha.</p>
   `);
 }
 
-/* ============ HELPERS ============ */
 function esc(s){ return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function money(n){ return 'TSh ' + Number(n||0).toLocaleString('en-US',{maximumFractionDigits:0}); }
 function num(n){ return Number(n||0).toLocaleString('en-US',{maximumFractionDigits:0}); }
@@ -479,15 +564,12 @@ async function logAction(kitendo, maelezo){
   try {
     if(!state.profile) return;
     await db.from('kumbukumbu').insert({
-      biashara_id: state.profile.biashara_id,
-      mtumiaji_id: state.profile.id,
-      mtumiaji_jina: state.profile.jina_kamili,
-      kitendo, maelezo: maelezo || ''
+      biashara_id: state.profile.biashara_id, mtumiaji_id: state.profile.id,
+      mtumiaji_jina: state.profile.jina_kamili, kitendo, maelezo: maelezo || ''
     });
   } catch(e){ console.error('logAction:', e); }
 }
 
-/* ============ LANDING / AUTH ============ */
 function showLanding(){
   document.getElementById('landing').classList.remove('hidden');
   document.getElementById('authScreen').classList.add('hidden');
@@ -502,7 +584,6 @@ function showAuth(mode){
   window.scrollTo(0,0);
 }
 
-/* ============ AUTH ============ */
 function switchAuth(which){
   const isLogin = which === 'login';
   document.getElementById('tabLogin').classList.toggle('on', isLogin);
@@ -603,21 +684,21 @@ function showWelcome(code, userId, name, bizName, isSeller){
   const firstName = name.split(' ')[0];
   showModal(`🎉 Karibu, ${esc(firstName)}!`, `
     <div style="text-align:center;margin-bottom:16px">
-      <div style="width:80px;height:80px;border-radius:24px;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 12px">🎉</div>
+      <div style="width:80px;height:80px;border-radius:26px;background:linear-gradient(135deg,#5b4bff,#a55bff);color:#fff;display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 12px;box-shadow:0 12px 32px rgba(91,75,255,0.35)">🎉</div>
       <p style="font-size:15px;line-height:1.7">${isSeller ? 'Umejiunga na biashara ya' : 'Akaunti yako ya biashara'} <b>${esc(bizName)}</b> imefanikiwa!</p>
     </div>
     ${code ? `
-      <p style="font-size:13px;color:var(--muted);text-align:center;margin-bottom:8px">Hii ni <b>Business Code</b> yako. Tumia kuwakaribisha wauzaji:</p>
+      <p style="font-size:13px;color:var(--muted);text-align:center;margin-bottom:8px">Hii ni <b>Business Code</b> yako:</p>
       <div class="code-box"><div style="font-size:12px;opacity:.85;margin-bottom:4px">BUSINESS CODE</div><div class="code">${code}</div></div>
       <button class="btn ghost full" onclick="copyCode('${code}')">📋 Nakili Code</button>
     ` : ''}
-    <div style="background:#f8fafc;border-radius:12px;padding:14px;margin-top:14px">
+    <div style="background:rgba(255,255,255,0.5);backdrop-filter:blur(20px);border-radius:16px;padding:14px;margin-top:14px;border:1px solid rgba(255,255,255,0.6)">
       <div style="font-weight:700;font-size:14px;margin-bottom:10px">Hatua za Mwanzo:</div>
       <div style="font-size:13.5px;line-height:2;color:var(--muted)">
-        <div>1️⃣ &nbsp;Ongeza bidhaa kwenye 📦 <b>Bidhaa</b></div>
-        <div>2️⃣ &nbsp;Rekodi mauzo kwenye 💰 <b>Mauzo</b></div>
-        <div>3️⃣ &nbsp;Angalia faida kwenye 📈 <b>Ripoti</b></div>
-        <div>4️⃣ &nbsp;Badilisha logo kwenye 🎨 <b>Branding</b></div>
+        <div>1️⃣ Ongeza bidhaa kwenye 📦 <b>Bidhaa</b></div>
+        <div>2️⃣ Rekodi mauzo kwenye 💰 <b>Mauzo</b></div>
+        <div>3️⃣ Angalia faida kwenye 📈 <b>Ripoti</b></div>
+        <div>4️⃣ Badilisha logo kwenye 🎨 <b>Branding</b></div>
       </div>
     </div>
     <button class="btn primary full" onclick="closeModal();loadProfile('${userId}')">Anza Kutumia →</button>
@@ -653,7 +734,6 @@ async function boot(){
     if(splash) splash.classList.add('hide');
     setTimeout(() => splash?.remove(), 600);
   }, 1400);
-
   const s = readSession();
   if(s && s.userId){ await loadProfile(s.userId); }
   else { showLanding(); }
@@ -691,7 +771,6 @@ async function render(){
   pg.innerHTML = await fn();
 }
 
-/* ============ DASHIBODI ============ */
 async function pgDashboard(){
   const sales = await getSales();
   const prods = await getProducts();
@@ -699,16 +778,10 @@ async function pgDashboard(){
   const todaySales = sales.filter(s => new Date(s.tarehe) >= t0);
   const lowStock = prods.filter(p => p.stock <= 5);
   const last30 = sales.filter(s => Date.now() - new Date(s.tarehe).getTime() < 30*86400000);
-
-// Hesabu siku zenye mauzo
-const uniqueDays = new Set(last30.map(s => {
-  const d = new Date(s.tarehe);
-  return d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate();
-}));
-const daysWithSales = uniqueDays.size || 1;
-
-const avgDaily = sum(last30, 'jumla') / daysWithSales;
-const avgProfit = sum(last30, 'faida') / daysWithSales;
+  const daysSet = new Set(last30.map(s => { const d = new Date(s.tarehe); return d.getFullYear()+'-'+d.getMonth()+'-'+d.getDate(); }));
+  const daysWithSales = daysSet.size || 1;
+  const avgDaily = sum(last30, 'jumla') / daysWithSales;
+  const avgProfit = sum(last30, 'faida') / daysWithSales;
   const map = {};
   sales.forEach(s => { if(!map[s.bidhaa_jina]) map[s.bidhaa_jina] = { qty:0, total:0, profit:0 }; map[s.bidhaa_jina].qty += s.idadi; map[s.bidhaa_jina].total += s.jumla; map[s.bidhaa_jina].profit += s.faida; });
   const top = Object.entries(map).sort((a,b)=> b[1].profit - a[1].profit).slice(0,3);
@@ -723,20 +796,19 @@ const avgProfit = sum(last30, 'faida') / daysWithSales;
       <div class="stat"><div class="lb">Stock Ndogo</div><div class="vl" style="color:${lowStock.length?'var(--err)':'var(--ok)'}">${lowStock.length}</div></div>
     </div>
     <div class="stats">
-      <div class="stat o"><div class="lb">Wastani Mauzo/Siku</div><div class="vl">${money(avgDaily)}</div></div>
-      <div class="stat o"><div class="lb">Wastani Faida/Siku</div><div class="vl">${money(avgProfit)}</div></div>
+      <div class="stat o"><div class="lb">Wastani Mauzo</div><div class="vl">${money(avgDaily)}</div></div>
+      <div class="stat o"><div class="lb">Wastani Faida</div><div class="vl">${money(avgProfit)}</div></div>
       <div class="stat"><div class="lb">Mauzo Jumla</div><div class="vl">${money(sum(sales,'jumla'))}</div></div>
       <div class="stat"><div class="lb">Faida Jumla</div><div class="vl" style="color:var(--ok)">${money(sum(sales,'faida'))}</div></div>
     </div>
-  <p style="font-size:11.5px;color:var(--muted);text-align:center;margin:-10px 0 16px">Wastani umetokana na siku ${daysWithSales} zenye mauzo (siku 30 zilizopita)</p>
-    ${lowStock.length ? `<div class="card" style="border-color:#fcd34d;background:#fffbeb"><h3>⚠️ Bidhaa zinazoisha stock</h3>${lowStock.slice(0,6).map(p => `<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #fde68a;font-size:14px"><span><b>${esc(p.jina)}</b></span><span class="badge ${p.stock===0?'err':'warn'}">${p.stock} ${esc(p.kipimo||'')}</span></div>`).join('')}</div>` : ''}
-    ${top.length ? `<div class="card"><h3>🏆 Bidhaa zenye faida kubwa</h3>${top.map(([name,d],i) => `<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;${i<top.length-1?'border-bottom:1px solid var(--border)':''}"><div><div style="font-weight:700;font-size:14px">${esc(name)}</div><div style="font-size:12px;color:var(--muted)">${num(d.qty)} zimeuzwa · ${money(d.total)}</div></div><div class="pos">${money(d.profit)}</div></div>`).join('')}</div>` : ''}
+    <p style="font-size:11.5px;color:var(--muted);text-align:center;margin:-10px 0 16px">Wastani kutokana na siku ${daysWithSales} (siku 30 zilizopita)</p>
+    ${lowStock.length ? `<div class="card" style="border-color:rgba(245,158,11,0.5);background:rgba(255,251,235,0.6)"><h3>⚠️ Bidhaa zinazoisha stock</h3>${lowStock.slice(0,6).map(p => `<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(245,158,11,0.3);font-size:14px"><span><b>${esc(p.jina)}</b></span><span class="badge ${p.stock===0?'err':'warn'}">${p.stock} ${esc(p.kipimo||'')}</span></div>`).join('')}</div>` : ''}
+    ${top.length ? `<div class="card"><h3>🏆 Bidhaa zenye faida kubwa</h3>${top.map(([name,d],i) => `<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;${i<top.length-1?'border-bottom:1px solid rgba(255,255,255,0.5)':''}"><div><div style="font-weight:700;font-size:14px">${esc(name)}</div><div style="font-size:12px;color:var(--muted)">${num(d.qty)} zimeuzwa · ${money(d.total)}</div></div><div class="pos">${money(d.profit)}</div></div>`).join('')}</div>` : ''}
     <div class="card"><h3>Mauzo ya Karibuni <button class="btn ghost xs" onclick="go('sales')">Zote →</button></h3>${recent.length ? `<div class="tw"><table><thead><tr><th>Muda</th><th>Bidhaa</th><th class="num">Idadi</th><th class="num">Jumla</th><th class="num">Faida</th></tr></thead><tbody>${recent.map(s => `<tr><td style="color:var(--muted);font-size:12.5px">${dtstr(s.tarehe)}</td><td><b>${esc(s.bidhaa_jina)}</b><br><small style="color:var(--muted)">${esc(s.muuzaji_jina||'—')}</small></td><td class="num">${num(s.idadi)}</td><td class="num">${money(s.jumla)}</td><td class="num pos">${money(s.faida)}</td></tr>`).join('')}</tbody></table></div>` : '<div class="empty"><div class="e">🧾</div><div>Hakuna mauzo bado</div></div>'}</div>
     <button class="btn primary full" onclick="saleModal()">＋ Rekodi Mauzo Mapya</button>
   `;
 }
 
-/* ============ BIDHAA ============ */
 async function pgProducts(){
   let list = await getProducts();
   const q = state.search.toLowerCase();
@@ -803,13 +875,11 @@ function bulkImportModal(){
     <button class="btn primary full" onclick="processBulkCSV()">📥 Pakia Bidhaa</button>
   `);
 }
-
 function downloadTemplate(){
   const csv = 'jina,aina,bei_halisi,bei_kutoka,stock,kipimo\nSoda ya Coca,Vinywaji,800,1200,50,kipande\nMkate wa 400,Mkate,900,1200,30,kipande\n';
   download('template-bidhaa.csv', csv, 'text/csv;charset=utf-8');
   toast('Template imepakuliwa', 'ok');
 }
-
 async function processBulkCSV(){
   const file = document.getElementById('csvFile').files[0];
   if(!file) return toast('Chagua faili kwanza', 'err');
@@ -835,7 +905,6 @@ async function processBulkCSV(){
   closeModal(); render();
 }
 
-/* ============ MAUZO ============ */
 async function pgSales(){
   const sales = await getSales();
   const t0 = new Date(); t0.setHours(0,0,0,0);
@@ -915,7 +984,7 @@ async function generateReceipt(saleId){
   const doc = new jsPDF({ unit:'mm', format:'a5' });
   const W = doc.internal.pageSize.getWidth();
   const biz = state.profile.biashara?.jina || brand.name || 'BiasharaPro';
-  doc.setFillColor(79,70,229); doc.rect(0,0,W,32,'F');
+  doc.setFillColor(91,75,255); doc.rect(0,0,W,32,'F');
   doc.setTextColor(255,255,255); doc.setFontSize(18); doc.setFont('helvetica','bold');
   doc.text('RISITI YA MAUZO', W/2, 14, { align:'center' });
   doc.setFontSize(10); doc.setFont('helvetica','normal'); doc.text(biz, W/2, 22, { align:'center' });
@@ -943,7 +1012,6 @@ async function generateReceipt(saleId){
   toast('Risiti imepakuliwa', 'ok');
 }
 
-/* ============ WATUMIAJI ============ */
 async function pgUsers(){
   if(!isOwner()) return '<div class="empty"><div class="e">🔒</div><div>Huna ruhusa</div></div>';
   const users = await getUsers();
@@ -952,19 +1020,18 @@ async function pgUsers(){
   const code = state.profile.biashara?.code || '—';
   return `
     <div class="head"><div><h2 class="pt">Watumiaji</h2><p class="ps" style="margin:0">Wauzaji wa biashara yako</p></div></div>
-    <div class="card" style="background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border:none">
-      <div style="font-size:12px;opacity:.85;margin-bottom:6px;font-weight:600">BUSINESS CODE — Shiriki na wauzaji</div>
-      <div style="font-size:28px;font-weight:900;letter-spacing:4px;font-family:monospace;text-align:center;padding:10px 0">${esc(code)}</div>
-      <button class="btn full" style="background:rgba(255,255,255,.2);color:#fff;margin-top:8px" onclick="copyCode('${esc(code)}')">📋 Nakili Code</button>
+    <div class="card" style="background:linear-gradient(135deg,#5b4bff,#a55bff);color:#fff;border:1px solid rgba(255,255,255,0.3);box-shadow:0 12px 32px rgba(91,75,255,0.35)">
+      <div style="font-size:12px;opacity:.9;margin-bottom:8px;font-weight:700;letter-spacing:.5px">BUSINESS CODE</div>
+      <div style="font-size:30px;font-weight:900;letter-spacing:5px;font-family:ui-monospace,monospace;text-align:center;padding:12px 0">${esc(code)}</div>
+      <button class="btn full" style="background:rgba(255,255,255,.22);color:#fff;margin-top:8px;backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.3)" onclick="copyCode('${esc(code)}')">📋 Nakili Code</button>
     </div>
     <div class="stats"><div class="stat"><div class="lb">Watumiaji</div><div class="vl">${users.length}</div></div><div class="stat"><div class="lb">Wauzaji</div><div class="vl">${sellers.length}</div></div><div class="stat"><div class="lb">Wanaofanya Kazi</div><div class="vl">${sellers.filter(s=>s.active).length}</div></div><div class="stat"><div class="lb">Mauzo</div><div class="vl">${sales.length}</div></div></div>
-    <div class="card"><h3>Orodha ya watumiaji</h3>${users.map((u,i) => { const us = sales.filter(s => s.muuzaji_id === u.id); return `<div style="padding:12px 0;${i<users.length-1?'border-bottom:1px solid var(--border)':''}"><div style="display:flex;align-items:center;gap:11px"><div style="width:40px;height:40px;border-radius:12px;flex:none;background:${u.role==='mmiliki'?'linear-gradient(135deg,#4f46e5,#7c3aed)':'#e0e7ff'};color:${u.role==='mmiliki'?'#fff':'#4338ca'};display:flex;align-items:center;justify-content:center;font-weight:800">${esc((u.jina_kamili||'?')[0].toUpperCase())}</div><div style="flex:1;min-width:0"><div style="font-weight:700;font-size:14px">${esc(u.jina_kamili)} ${u.role==='mmiliki'?'<span class="badge info">Mmiliki</span>':''} ${!u.active?'<span class="badge err">Imezimwa</span>':''}</div><div style="font-size:12px;color:var(--muted)">@${esc(u.username||'—')} · Mauzo: ${us.length} · ${money(sum(us,'jumla'))}</div></div></div>${u.role==='muuzaji' ? `<div style="display:flex;gap:7px;margin-top:10px;margin-left:51px;flex-wrap:wrap"><button class="btn ghost xs" onclick="toggleUser('${u.id}', ${u.active})">${u.active?'🚫 Zima':'✅ Ruhusu'}</button> <button class="btn danger xs" onclick="delUser('${u.id}')">🗑️ Futa</button></div>` : ''}</div>`; }).join('')}</div>
+    <div class="card"><h3>Orodha ya watumiaji</h3>${users.map((u,i) => { const us = sales.filter(s => s.muuzaji_id === u.id); return `<div style="padding:12px 0;${i<users.length-1?'border-bottom:1px solid rgba(255,255,255,0.5)':''}"><div style="display:flex;align-items:center;gap:11px"><div style="width:44px;height:44px;border-radius:15px;flex:none;background:${u.role==='mmiliki'?'linear-gradient(135deg,#5b4bff,#a55bff)':'rgba(91,75,255,0.15)'};color:${u.role==='mmiliki'?'#fff':'#4338ca'};display:flex;align-items:center;justify-content:center;font-weight:800;box-shadow:${u.role==='mmiliki'?'0 6px 16px rgba(91,75,255,0.3)':'none'}">${esc((u.jina_kamili||'?')[0].toUpperCase())}</div><div style="flex:1;min-width:0"><div style="font-weight:700;font-size:14px">${esc(u.jina_kamili)} ${u.role==='mmiliki'?'<span class="badge info">Mmiliki</span>':''} ${!u.active?'<span class="badge err">Imezimwa</span>':''}</div><div style="font-size:12px;color:var(--muted)">@${esc(u.username||'—')} · Mauzo: ${us.length} · ${money(sum(us,'jumla'))}</div></div></div>${u.role==='muuzaji' ? `<div style="display:flex;gap:7px;margin-top:10px;margin-left:55px;flex-wrap:wrap"><button class="btn ghost xs" onclick="toggleUser('${u.id}', ${u.active})">${u.active?'🚫 Zima':'✅ Ruhusu'}</button> <button class="btn danger xs" onclick="delUser('${u.id}')">🗑️ Futa</button></div>` : ''}</div>`; }).join('')}</div>
   `;
 }
 async function toggleUser(id, active){ const { error } = await db.from('watumiaji').update({ active: !active }).eq('id', id); if(error) return toast(error.message, 'err'); toast(!active?'Ameruhusiwa':'Amezimwa', 'ok'); logAction('badili_mtumiaji', id); render(); }
 async function delUser(id){ if(!confirm('Futa muuzaji huyu?')) return; const { error } = await db.from('watumiaji').delete().eq('id', id); if(error) return toast(error.message, 'err'); toast('Amefutwa', 'ok'); logAction('futa_mtumiaji', id); render(); }
 
-/* ============ AUDIT ============ */
 async function pgAudit(){
   if(!isOwner()) return '<div class="empty"><div class="e">🔒</div><div>Ni kwa mmiliki</div></div>';
   const logs = await getAudit();
@@ -973,8 +1040,8 @@ async function pgAudit(){
     <p class="ps">Matukio ${logs.length} ya karibuni</p>
     <div class="card">
       ${logs.length ? logs.map(l => `
-        <div style="padding:11px 0;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:flex-start">
-          <div style="width:32px;height:32px;border-radius:9px;background:#eef2ff;color:#4338ca;display:flex;align-items:center;justify-content:center;font-size:14px;flex:none">
+        <div style="padding:11px 0;border-bottom:1px solid rgba(255,255,255,0.5);display:flex;gap:10px;align-items:flex-start">
+          <div style="width:36px;height:36px;border-radius:12px;background:rgba(91,75,255,0.15);color:#4338ca;display:flex;align-items:center;justify-content:center;font-size:15px;flex:none">
             ${l.kitendo === 'login' ? '🔑' : l.kitendo === 'logout' ? '🚪' : l.kitendo === 'rekodi_mauzo' ? '💰' : l.kitendo === 'ongeza_bidhaa' || l.kitendo === 'bulk_bidhaa' ? '📦' : l.kitendo === 'futa_bidhaa' ? '🗑️' : l.kitendo === 'hariri_bidhaa' ? '✏️' : l.kitendo === 'export_csv' ? '📊' : l.kitendo === 'tuma_whatsapp' ? '💬' : l.kitendo === 'backup' ? '💾' : l.kitendo === 'badili_branding' ? '🎨' : l.kitendo === 'badili_logo' ? '🖼️' : '📝'}
           </div>
           <div style="flex:1;min-width:0">
@@ -988,61 +1055,45 @@ async function pgAudit(){
   `;
 }
 
-/* ============ BRANDING ============ */
 async function pgBranding(){
   if(!isOwner()) return '<div class="empty"><div class="e">🔒</div><div>Ni kwa mmiliki</div></div>';
   const b = getBrand();
   const logo = b.logo || 'BP';
   const hasImage = !!b.logoImage;
-
   return `
     <h2 class="pt">🎨 Branding</h2>
     <p class="ps">Badilisha muonekano wa mfumo wako</p>
 
     <div class="card">
       <h3>Jina la Mfumo</h3>
-      <label>Jina (linaonekana kwenye splash, landing, na sidebar)</label>
+      <label>Jina</label>
       <input id="brName" value="${esc(b.name || 'BiasharaPro')}" placeholder="mfano: DukaPro">
-      <label>Tagline (maelezo mafupi)</label>
+      <label>Tagline</label>
       <input id="brTagline" value="${esc(b.tagline || 'Simamia biashara yako kwa urahisi')}" placeholder="mfano: Biashara yako, kwa urahisi">
     </div>
 
     <div class="card">
       <h3>Logo</h3>
-      <p style="font-size:13px;color:var(--muted);margin-bottom:10px">
-        Pakia <b>picha yako</b> (inapendekezwa 200×200px, max 500KB). Kama huna picha, andika herufi au emoji.
-      </p>
-
+      <p style="font-size:13px;color:var(--muted);margin-bottom:10px">Pakia <b>picha yako</b> (200×200px, max 500KB) au andika herufi/emoji.</p>
       <div class="logo-preview" id="logoPreview">${hasImage ? `<img src="${b.logoImage}" alt="logo">` : esc(logo)}</div>
-
-      <label class="logo-upload-btn">
-        📷 Pakia Picha ya Logo
-        <input type="file" id="logoFile" accept="image/*" onchange="uploadLogo(event)">
-      </label>
-
+      <label class="logo-upload-btn">📷 Pakia Picha ya Logo<input type="file" id="logoFile" accept="image/*" onchange="uploadLogo(event)"></label>
       ${hasImage ? `<button class="btn danger full" style="margin-top:10px" onclick="removeLogoImage()">🗑️ Ondoa Picha</button>` : ''}
-
       <label style="margin-top:16px">Au Andika Herufi / Emoji</label>
       <input id="brLogo" value="${esc(logo)}" placeholder="mfano: BP au 🏪" maxlength="4" style="text-align:center;font-size:22px;font-weight:800">
-      <p style="font-size:11.5px;color:var(--muted);margin-top:6px;text-align:center">Herufi haitumiki kama picha imewekwa</p>
     </div>
 
     <div class="card">
-      <h3>Mawasiliano (footer na risiti)</h3>
+      <h3>Mawasiliano</h3>
       <label>Namba ya Simu</label>
       <input id="brPhone" value="${esc(b.phone || '')}" placeholder="+255 712 345 678">
       <label>Email</label>
       <input id="brEmail" type="email" value="${esc(b.email || '')}" placeholder="info@dukapro.co.tz">
-      <label>Namba ya WhatsApp</label>
+      <label>WhatsApp</label>
       <input id="brWhatsapp" value="${esc(b.whatsapp || '')}" placeholder="+255 712 345 678">
     </div>
 
     <button class="btn primary full" onclick="saveBranding()">💾 Hifadhi Branding</button>
     <button class="btn ghost full" onclick="resetBranding()">🔄 Rudisha kwa Default</button>
-
-    <div class="hint" style="margin-top:14px">
-      <b>Kidokezo:</b> Picha inaonekana kwenye splash, landing, login, sidebar, topbar, favicon, na PDF risiti.
-    </div>
   `;
 }
 
@@ -1051,7 +1102,6 @@ function uploadLogo(event){
   if(!file) return;
   if(!file.type.startsWith('image/')) return toast('Faili si picha', 'err');
   if(file.size > 500 * 1024) return toast('Picha ni kubwa (max 500KB)', 'err');
-
   const reader = new FileReader();
   reader.onload = (e) => {
     const b = getBrand();
@@ -1064,17 +1114,15 @@ function uploadLogo(event){
   reader.onerror = () => toast('Imeshindwa kusoma picha', 'err');
   reader.readAsDataURL(file);
 }
-
 function removeLogoImage(){
   if(!confirm('Ondoa picha ya logo?')) return;
   const b = getBrand();
   delete b.logoImage;
   saveBrand(b);
   toast('Picha imeondolewa', 'ok');
-  logAction('badili_logo', 'Picha ya logo imeondolewa');
+  logAction('badili_logo', 'Picha imeondolewa');
   render();
 }
-
 function saveBranding(){
   const existing = getBrand();
   const b = {
@@ -1091,7 +1139,6 @@ function saveBranding(){
   logAction('badili_branding', 'Jina: ' + b.name);
   render();
 }
-
 function resetBranding(){
   if(!confirm('Rudisha branding kwa default?')) return;
   localStorage.removeItem(BRAND_KEY);
@@ -1100,7 +1147,6 @@ function resetBranding(){
   render();
 }
 
-/* ============ REPORTS ============ */
 function setPeriod(p){ state.period = p; render(); }
 function setReportView(v){ state.reportView = v; render(); }
 
@@ -1116,18 +1162,15 @@ async function pgReports(){
   const total = sum(f,'jumla'), profit = sum(f,'faida');
   const cost = sum(f, s => s.jumla - s.faida);
   const margin = total > 0 ? (profit/total*100) : 0;
-
   const pmap = {};
   f.forEach(s => { if(!pmap[s.bidhaa_jina]) pmap[s.bidhaa_jina]={qty:0,total:0,profit:0}; pmap[s.bidhaa_jina].qty += s.idadi; pmap[s.bidhaa_jina].total += s.jumla; pmap[s.bidhaa_jina].profit += s.faida; });
   const top = Object.entries(pmap).sort((a,b)=> b[1].profit - a[1].profit).slice(0,8);
   const smap = {};
   f.forEach(s => { const k = s.muuzaji_jina||'—'; if(!smap[k]) smap[k]={count:0,total:0,profit:0}; smap[k].count++; smap[k].total += s.jumla; smap[k].profit += s.faida; });
   const bySeller = Object.entries(smap).sort((a,b)=> b[1].total - a[1].total);
-
   const days = [];
   for(let i=6; i>=0; i--){ const d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()-i); const nx = new Date(d); nx.setDate(nx.getDate()+1); const ds = sales.filter(s => { const t = new Date(s.tarehe).getTime(); return t>=d.getTime() && t<nx.getTime(); }); days.push({ label: d.toLocaleDateString('sw-TZ',{weekday:'short'}), total: sum(ds,'jumla') }); }
   const maxDay = Math.max(...days.map(d=>d.total), 1);
-
   const months = [];
   for(let i=11; i>=0; i--){
     const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
@@ -1137,12 +1180,10 @@ async function pgReports(){
   }
   const maxMonth = Math.max(...months.map(m=>m.total), 1);
   const periods = [['today','Leo'],['week','Wiki'],['month','Mwezi'],['year','Mwaka'],['all','Zote']];
-
   return `
     <h2 class="pt">Ripoti</h2><p class="ps">Uchambuzi — ${label}</p>
     <div style="display:flex;gap:7px;overflow-x:auto;padding-bottom:12px">${periods.map(([k,v]) => `<button class="btn ${state.period===k?'primary':'ghost'} sm" style="flex:none" onclick="setPeriod('${k}')">${v}</button>`).join('')}</div>
     <div class="stats"><div class="stat p"><div class="lb">Mauzo (${label})</div><div class="vl">${money(total)}</div></div><div class="stat g"><div class="lb">Faida (${label})</div><div class="vl">${money(profit)}</div></div><div class="stat"><div class="lb">Gharama</div><div class="vl">${money(cost)}</div></div><div class="stat"><div class="lb">Margin</div><div class="vl">${margin.toFixed(1)}%</div></div></div>
-
     <div class="card">
       <h3 style="flex-wrap:wrap">📊 Mauzo ya ${state.reportView === 'week' ? 'Siku 7' : 'Miezi 12'}
         <div style="display:flex;gap:5px">
@@ -1151,21 +1192,19 @@ async function pgReports(){
         </div>
       </h3>
       ${state.reportView === 'week' ? `
-        <div class="chart">${days.map(d => `<div class="bar" title="${money(d.total)}"><div class="val">${d.total>0?num(Math.round(d.total/1000))+'k':''}</div><div class="fill" style="height:${Math.max(4,(d.total/maxDay)*100)}%"></div><div class="lab">${d.label}</div></div>`).join('')}</div>
+        <div class="chart">${days.map(d => `<div class="bar" title="${money(d.total)}"><div class="val">${d.total>0?num(Math.round(d.total/1000))+'k':''}</div><div class="fill" style="height:${Math.max(6,(d.total/maxDay)*100)}%"></div><div class="lab">${d.label}</div></div>`).join('')}</div>
         <p style="font-size:12px;color:var(--muted);margin-top:10px;text-align:center">Jumla siku 7: <b>${money(sum(days,'total'))}</b></p>
       ` : `
-        <div class="chart">${months.map(m => `<div class="bar" title="${money(m.total)}"><div class="val">${m.total>0?num(Math.round(m.total/1000))+'k':''}</div><div class="fill" style="height:${Math.max(4,(m.total/maxMonth)*100)}%;background:linear-gradient(180deg,#f59e0b,#d97706)"></div><div class="lab">${m.label}</div></div>`).join('')}</div>
+        <div class="chart">${months.map(m => `<div class="bar" title="${money(m.total)}"><div class="val">${m.total>0?num(Math.round(m.total/1000))+'k':''}</div><div class="fill" style="height:${Math.max(6,(m.total/maxMonth)*100)}%;background:linear-gradient(180deg,#ffb366,#f59e0b);box-shadow:0 4px 12px rgba(245,158,11,0.3)"></div><div class="lab">${m.label}</div></div>`).join('')}</div>
         <p style="font-size:12px;color:var(--muted);margin-top:10px;text-align:center">Jumla miezi 12: <b>${money(sum(months,'total'))}</b> · Faida: <b class="pos">${money(sum(months,'profit'))}</b></p>
       `}
     </div>
-
     <div class="card"><h3>🏆 Bidhaa Zenye Faida Kubwa</h3>${top.length ? `<div class="tw"><table><thead><tr><th>#</th><th>Bidhaa</th><th class="num">Idadi</th><th class="num">Mauzo</th><th class="num">Faida</th></tr></thead><tbody>${top.map(([n,d],i)=>`<tr><td><b>${i+1}</b></td><td>${esc(n)}</td><td class="num">${num(d.qty)}</td><td class="num">${money(d.total)}</td><td class="num pos">${money(d.profit)}</td></tr>`).join('')}</tbody></table></div>` : '<div class="empty"><div class="e">📭</div><div>Hakuna data</div></div>'}</div>
     <div class="card"><h3>👥 Utendaji kwa Muuzaji</h3>${bySeller.length ? `<div class="tw"><table><thead><tr><th>Muuzaji</th><th class="num">Mauzo</th><th class="num">Jumla</th><th class="num">Faida</th></tr></thead><tbody>${bySeller.map(([n,d])=>`<tr><td><b>${esc(n)}</b></td><td class="num">${d.count}</td><td class="num">${money(d.total)}</td><td class="num pos">${money(d.profit)}</td></tr>`).join('')}</tbody></table></div>` : '<div class="empty"><div class="e">📭</div><div>Hakuna data</div></div>'}</div>
     <button class="btn ghost full" onclick="exportData()">⬇️ Pakua Ripoti (JSON)</button>
   `;
 }
 
-/* ============ SETTINGS ============ */
 async function pgSettings(){
   const sales = await getSales();
   const prods = await getProducts();
@@ -1175,33 +1214,29 @@ async function pgSettings(){
   const lastBackup = localStorage.getItem(BACKUP_KEY);
   const autoBackupOn = localStorage.getItem('bp_auto_backup') === '1';
   const brand = getBrand();
-
   return `
     <h2 class="pt">Mipangilio</h2><p class="ps">Taarifa za akaunti</p>
-    ${isOwner() ? `<div class="card" style="background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border:none"><div style="font-size:12px;opacity:.85;margin-bottom:6px;font-weight:600">BUSINESS CODE YAKO</div><div style="font-size:26px;font-weight:900;letter-spacing:4px;font-family:monospace;text-align:center;padding:8px 0">${esc(code)}</div><button class="btn full" style="background:rgba(255,255,255,.2);color:#fff;margin-top:6px" onclick="copyCode('${esc(code)}')">📋 Nakili</button></div>` : ''}
+    ${isOwner() ? `<div class="card" style="background:linear-gradient(135deg,#5b4bff,#a55bff);color:#fff;border:1px solid rgba(255,255,255,0.3);box-shadow:0 12px 32px rgba(91,75,255,0.35)"><div style="font-size:12px;opacity:.9;margin-bottom:8px;font-weight:700;letter-spacing:.5px">BUSINESS CODE YAKO</div><div style="font-size:28px;font-weight:900;letter-spacing:5px;font-family:ui-monospace,monospace;text-align:center;padding:10px 0">${esc(code)}</div><button class="btn full" style="background:rgba(255,255,255,.22);color:#fff;margin-top:8px;backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.3)" onclick="copyCode('${esc(code)}')">📋 Nakili</button></div>` : ''}
     <div class="card"><h3>🏢 Taarifa za Biashara</h3><div class="hint" style="margin-top:0"><b>Jina la Biashara:</b> ${esc(state.profile.biashara?.jina||'—')}<br><b>Mmiliki:</b> ${esc(owner?.jina_kamili||'—')}<br><b>Username yako:</b> @${esc(state.profile.username||'—')}<br><b>Wewe ni:</b> ${isOwner()?'Mmiliki':'Muuzaji'}<br><b>Mfumo:</b> ${esc(brand.name||'BiasharaPro')}<br><b>Imeanzishwa:</b> ${dstr(state.profile.biashara?.imeundwa||Date.now())}</div></div>
     <div class="card"><h3>📊 Data</h3><div class="stats" style="grid-template-columns:repeat(3,1fr);margin-bottom:0"><div class="stat"><div class="lb">Bidhaa</div><div class="vl">${prods.length}</div></div><div class="stat"><div class="lb">Mauzo</div><div class="vl">${sales.length}</div></div><div class="stat"><div class="lb">Watumiaji</div><div class="vl">${users.length}</div></div></div></div>
-
     ${isOwner() ? `
     <div class="card">
       <h3>💾 Backup Automatic</h3>
       <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0">
-        <div><div style="font-weight:700;font-size:14px">Washa Backup ya Kila Siku</div><div style="font-size:12px;color:var(--muted);margin-top:2px">Backup inapakuliwa mara moja kwa siku</div></div>
+        <div><div style="font-weight:700;font-size:14px">Washa Backup ya Kila Siku</div><div style="font-size:12px;color:var(--muted);margin-top:2px">Inapakuliwa mara moja kwa siku</div></div>
         <label class="switch"><input type="checkbox" ${autoBackupOn?'checked':''} onchange="toggleAutoBackup(this.checked)"><span class="slider"></span></label>
       </div>
       <div style="font-size:12px;color:var(--muted);margin-top:6px">Backup ya mwisho: <b>${lastBackup ? dtstr(+lastBackup) : 'Hakuna'}</b></div>
       <button class="btn ghost full" style="margin-top:12px" onclick="doBackup(true)">💾 Backup Sasa</button>
     </div>
     ` : ''}
-
     <div class="card">
       <h3>📲 Weka kama App</h3>
-      <p style="font-size:13.5px;color:var(--muted);line-height:1.7">Bonyeza menu ya browser (⋮) kisha <b>"Add to Home Screen"</b> ili mfumo uonekane kama app.</p>
+      <p style="font-size:13.5px;color:var(--muted);line-height:1.7">Bonyeza menu ya browser kisha <b>"Add to Home Screen"</b>.</p>
       <button class="btn ghost full" style="margin-top:10px" onclick="installPWA()">📲 Weka kwenye Simu</button>
     </div>
-
     <div class="card">
-     ${isOwner() ? `
+   ${isOwner() ? `
 <div class="card">
   <h3>🎨 Branding</h3>
   <p style="font-size:13.5px;color:var(--muted);margin-bottom:12px">Badilisha jina, logo, na mawasiliano ya mfumo.</p>
@@ -1214,14 +1249,12 @@ async function pgSettings(){
       <button class="btn ghost full" style="margin-top:0" onclick="showTerms()">Masharti ya Matumizi</button>
       <button class="btn ghost full" style="margin-top:8px" onclick="showPrivacy()">Sera ya Faragha</button>
     </div>
-
     <div class="card"><h3>💾 Hifadhi Nakala (JSON)</h3><p style="font-size:13.5px;color:var(--muted);margin-bottom:12px">Pakua data yote kama faili la JSON.</p><button class="btn ghost full" style="margin-top:0" onclick="exportData()">⬇️ Pakua Data (JSON)</button></div>
     <button class="btn ghost full" onclick="logout()">🚪 Toka</button>
-    <p style="text-align:center;color:var(--muted);font-size:12px;margin-top:22px">${esc(brand.name||'BiasharaPro')} v6.1</p>
+    <p style="text-align:center;color:var(--muted);font-size:12px;margin-top:22px">${esc(brand.name||'BiasharaPro')} v7.1 · Liquid Glass</p>
   `;
 }
 
-/* ============ AUTO BACKUP ============ */
 function toggleAutoBackup(on){
   localStorage.setItem('bp_auto_backup', on ? '1' : '0');
   toast(on ? 'Backup ya kila siku imewashwa' : 'Backup imezimwa', 'ok');
@@ -1231,9 +1264,7 @@ async function checkAutoBackup(){
   if(!isOwner()) return;
   if(localStorage.getItem('bp_auto_backup') !== '1') return;
   const last = +localStorage.getItem(BACKUP_KEY) || 0;
-  if(Date.now() - last > 24 * 60 * 60 * 1000){
-    setTimeout(() => doBackup(false), 2000);
-  }
+  if(Date.now() - last > 24 * 60 * 60 * 1000){ setTimeout(() => doBackup(false), 2000); }
 }
 async function doBackup(manual){
   try {
@@ -1245,7 +1276,6 @@ async function doBackup(manual){
   } catch(e){ toast('Backup imeshindwa: ' + e.message, 'err'); }
 }
 
-/* ============ PWA ============ */
 let deferredInstallPrompt = null;
 window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredInstallPrompt = e; });
 function installPWA(){
@@ -1270,9 +1300,9 @@ function installPWA(){
 try {
   const b = getBrand();
   const logoTxt = (b.logo || 'BP').slice(0,3).replace(/[<>&"']/g,'');
-  const iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><rect width="192" height="192" rx="40" fill="#4f46e5"/><text x="96" y="128" font-size="80" font-weight="900" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">${logoTxt}</text></svg>`;
+  const iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5b4bff"/><stop offset="1" stop-color="#a55bff"/></linearGradient></defs><rect width="192" height="192" rx="42" fill="url(#g)"/><text x="96" y="128" font-size="80" font-weight="900" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">${logoTxt}</text></svg>`;
   const iconUrl = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(iconSvg)));
-  const manifest = { name: b.name||'BiasharaPro', short_name: (b.name||'BiasharaPro').slice(0,12), description: b.tagline||'Mfumo wa usimamizi wa biashara', start_url: './', display: 'standalone', background_color: '#4f46e5', theme_color: '#4f46e5', icons: [{ src: iconUrl, sizes: '192x192', type: 'image/svg+xml', purpose: 'any maskable' }] };
+  const manifest = { name: b.name||'BiasharaPro', short_name: (b.name||'BiasharaPro').slice(0,12), description: b.tagline||'Mfumo wa usimamizi wa biashara', start_url: './', display: 'standalone', background_color: '#5b4bff', theme_color: '#5b4bff', icons: [{ src: iconUrl, sizes: '192x192', type: 'image/svg+xml', purpose: 'any maskable' }] };
   const blob = new Blob([JSON.stringify(manifest)], {type: 'application/manifest+json'});
   const link = document.createElement('link');
   link.rel = 'manifest'; link.href = URL.createObjectURL(blob);
@@ -1281,14 +1311,12 @@ try {
   document.head.appendChild(appleIcon);
 } catch(e){ console.warn('PWA:', e); }
 
-/* ============ EXPORT ============ */
 async function exportData(){
   const data = { biashara: state.profile.biashara?.jina, code: state.profile.biashara?.code, imetolewa: new Date().toISOString(), bidhaa: await getProducts(), mauzo: await getSales(), watumiaji: (await getUsers()).map(u => ({...u, password_hash:'***'})) };
   download('biashara-' + Date.now() + '.json', JSON.stringify(data, null, 2), 'application/json');
   toast('Data imepakuliwa', 'ok');
 }
 
-/* ============ MODAL ============ */
 function showModal(title, body){ const m = document.getElementById('modal'); m.innerHTML = `<div class="modal-box" onclick="event.stopPropagation()"><div class="modal-head"><h3>${esc(title)}</h3><button class="icon-btn" onclick="closeModal()">✕</button></div><div class="modal-body">${body}</div></div>`; m.classList.remove('hidden'); m.onclick = closeModal; }
 function closeModal(){ document.getElementById('modal').classList.add('hidden'); document.getElementById('modal').innerHTML = ''; }
 document.addEventListener('keydown', e => { if(e.key === 'Escape') closeModal(); });
