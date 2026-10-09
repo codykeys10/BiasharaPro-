@@ -136,6 +136,8 @@ p.ps{color:var(--muted);font-size:13.5px;margin-bottom:18px}
 .stat.p .lb{color:rgba(255,255,255,.9)}
 .stat.o{background:linear-gradient(135deg,rgba(245,158,11,0.92),rgba(217,119,6,0.85));color:#fff;border:1px solid rgba(255,255,255,0.35)}
 .stat.o .lb{color:rgba(255,255,255,.9)}
+.stat.dark{background:linear-gradient(135deg,rgba(15,23,42,0.92),rgba(51,65,85,0.85));color:#fff;border:1px solid rgba(255,255,255,0.35)}
+.stat.dark .lb{color:rgba(255,255,255,.85)}
 .card{background:rgba(255,255,255,0.6);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border:1px solid rgba(255,255,255,0.6);box-shadow:inset 0 1px 0 rgba(255,255,255,0.7), 0 8px 24px rgba(31,38,135,0.08);border-radius:22px;padding:18px;margin-bottom:16px}
 .card h3{font-size:16px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:8px;font-weight:800;letter-spacing:-0.3px}
 .head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:16px;flex-wrap:wrap}
@@ -295,7 +297,7 @@ tr:last-child td{border-bottom:none}
       <button id="btnRegister" class="btn primary full" type="button" onclick="doRegister()">Tengeneza Akaunti</button>
     </div>
     <span class="back-link" onclick="showLanding()">← Rudi kwenye ukurasa wa mwanzo</span>
-    <div class="version">v7.2 · Liquid Glass</div>
+    <div class="version">v7.3 · Super Admin Edition</div>
   </div>
 </div>
 
@@ -316,6 +318,7 @@ tr:last-child td{border-bottom:none}
       <a class="nav-item owner-only" data-page="users" onclick="go('users')"><span>👥</span> Watumiaji</a>
       <a class="nav-item owner-only" data-page="audit" onclick="go('audit')"><span>📜</span> Kumbukumbu</a>
       <a class="nav-item owner-only" data-page="branding" onclick="go('branding')"><span>🎨</span> Branding</a>
+      <a class="nav-item super-only" data-page="superadmin" onclick="go('superadmin')"><span>👑</span> Super Admin</a>
       <a class="nav-item" data-page="settings"  onclick="go('settings')"><span>⚙️</span> Mipangilio</a>
     </nav>
     <div class="side-foot">
@@ -337,7 +340,7 @@ tr:last-child td{border-bottom:none}
     </div>
     <div class="page" id="page"></div>
   </div>
-  <nav class="bnav">
+  <nav class="bnav" id="bnav">
     <a data-page="dashboard" onclick="go('dashboard')"><span>📊</span>Dashibodi</a>
     <a data-page="products"  onclick="go('products')"><span>📦</span>Bidhaa</a>
     <a data-page="sales"     onclick="go('sales')"><span>💰</span>Mauzo</a>
@@ -352,7 +355,7 @@ tr:last-child td{border-bottom:none}
 
 <script>
 /* =========================================================
-   BIASHARAPRO v7.2 — Custom Confirm
+   BIASHARAPRO v7.3 — Super Admin Edition
    ========================================================= */
 
 function log(msg){ console.log(msg); }
@@ -370,7 +373,7 @@ const { jsPDF } = window.jspdf || {};
 const SESSION_KEY = 'bp_session_v4';
 const BACKUP_KEY = 'bp_last_backup';
 const BRAND_KEY = 'bp_brand';
-let state = { user:null, profile:null, page:'dashboard', period:'all', search:'', regRole:'owner', reportView:'week' };
+let state = { user:null, profile:null, page:'dashboard', period:'all', search:'', regRole:'owner', reportView:'week', saView:'overview' };
 
 /* ============ CUSTOM CONFIRM ============ */
 let confirmResolveFn = null;
@@ -400,9 +403,7 @@ function myConfirm(message){
     };
   });
 }
-function confirmAnswer(val){
-  if(confirmResolveFn) confirmResolveFn(val);
-}
+function confirmAnswer(val){ if(confirmResolveFn) confirmResolveFn(val); }
 
 /* ============ BRAND ============ */
 function getBrand(){ try { return JSON.parse(localStorage.getItem(BRAND_KEY)) || {}; } catch(e){ return {}; } }
@@ -649,7 +650,7 @@ function startSession(){
   document.getElementById('landing').classList.add('hidden');
   document.getElementById('authScreen').classList.add('hidden');
   document.getElementById('app').classList.add('on');
-  state.page = 'dashboard';
+  state.page = isSuperAdmin() ? 'superadmin' : 'dashboard';
   render();
   checkAutoBackup();
 }
@@ -678,16 +679,21 @@ async function boot(){
 }
 boot();
 
+/* ============ ROLE CHECKS ============ */
+function isSuperAdmin(){ return state.profile && state.profile.role === 'super_admin'; }
 function isOwner(){ return state.profile && state.profile.role === 'mmiliki'; }
 function bizId(){ return state.profile.biashara_id; }
 
+/* ============ DATA ACCESSORS ============ */
 async function getProducts(){ const { data } = await db.from('bidhaa').select('*').eq('biashara_id', bizId()).order('jina'); return data || []; }
 async function getSales(){ const { data } = await db.from('mauzo').select('*').eq('biashara_id', bizId()).order('tarehe', { ascending:false }); return data || []; }
 async function getUsers(){ const { data } = await db.from('watumiaji').select('*').eq('biashara_id', bizId()); return data || []; }
 async function getAudit(){ const { data } = await db.from('kumbukumbu').select('*').eq('biashara_id', bizId()).order('tarehe', { ascending:false }).limit(200); return data || []; }
 
+/* ============ NAVIGATION ============ */
 function go(page){
-  if((page === 'users' || page === 'audit' || page === 'branding') && !isOwner()){ toast('Ni kwa mmiliki tu', 'err'); return; }
+  if(page === 'superadmin' && !isSuperAdmin()){ toast('Ni kwa Super Admin tu', 'err'); return; }
+  if((page === 'users' || page === 'audit' || page === 'branding') && !isOwner() && !isSuperAdmin()){ toast('Ni kwa mmiliki tu', 'err'); return; }
   state.page = page; state.search = '';
   render(); window.scrollTo(0,0);
 }
@@ -695,20 +701,29 @@ function go(page){
 async function render(){
   if(!state.profile) return;
   applyBrand();
-  document.getElementById('sbBiz').textContent = state.profile.biashara?.jina || 'Biashara';
-  document.getElementById('tbBiz').textContent = state.profile.biashara?.jina || 'Biashara';
+
+  const bizLabel = isSuperAdmin() ? '👑 Super Admin' : (state.profile.biashara?.jina || 'Biashara');
+  document.getElementById('sbBiz').textContent = bizLabel;
+  document.getElementById('tbBiz').textContent = bizLabel;
   document.getElementById('sbUser').textContent = state.profile.jina_kamili;
-  document.getElementById('tbUser').textContent = state.profile.jina_kamili + ' · ' + (isOwner()?'Mmiliki':'Muuzaji');
-  document.getElementById('sbRole').textContent = isOwner() ? 'Mmiliki wa Biashara' : 'Muuzaji';
-  document.querySelectorAll('.owner-only').forEach(el => { el.style.display = isOwner() ? '' : 'none'; });
+  document.getElementById('tbUser').textContent = state.profile.jina_kamili + ' · ' + (isSuperAdmin()?'Super Admin':(isOwner()?'Mmiliki':'Muuzaji'));
+  document.getElementById('sbRole').textContent = isSuperAdmin() ? 'Super Administrator' : (isOwner() ? 'Mmiliki wa Biashara' : 'Muuzaji');
+
+  document.querySelectorAll('.owner-only').forEach(el => {
+    if(isSuperAdmin()) el.style.display = 'none';
+    else el.style.display = isOwner() ? '' : 'none';
+  });
+  document.querySelectorAll('.super-only').forEach(el => { el.style.display = isSuperAdmin() ? '' : 'none'; });
   document.querySelectorAll('[data-page]').forEach(el => { el.classList.toggle('active', el.dataset.page === state.page); });
+
   const pg = document.getElementById('page');
   pg.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">Inapakia...</div>';
-  const pages = { dashboard: pgDashboard, products: pgProducts, sales: pgSales, users: pgUsers, reports: pgReports, audit: pgAudit, branding: pgBranding, settings: pgSettings };
+  const pages = { dashboard: pgDashboard, products: pgProducts, sales: pgSales, users: pgUsers, reports: pgReports, audit: pgAudit, branding: pgBranding, superadmin: pgSuperAdmin, settings: pgSettings };
   const fn = pages[state.page] || pgDashboard;
   pg.innerHTML = await fn();
 }
 
+/* ============ DASHIBODI ============ */
 async function pgDashboard(){
   const sales = await getSales();
   const prods = await getProducts();
@@ -747,6 +762,7 @@ async function pgDashboard(){
   `;
 }
 
+/* ============ BIDHAA ============ */
 async function pgProducts(){
   let list = await getProducts();
   const q = state.search.toLowerCase();
@@ -843,6 +859,7 @@ async function processBulkCSV(){
   closeModal(); render();
 }
 
+/* ============ MAUZO ============ */
 async function pgSales(){
   const sales = await getSales();
   const t0 = new Date(); t0.setHours(0,0,0,0);
@@ -950,8 +967,9 @@ async function generateReceipt(saleId){
   toast('Risiti imepakuliwa', 'ok');
 }
 
+/* ============ WATUMIAJI ============ */
 async function pgUsers(){
-  if(!isOwner()) return '<div class="empty"><div class="e">🔒</div><div>Huna ruhusa</div></div>';
+  if(!isOwner() && !isSuperAdmin()) return '<div class="empty"><div class="e">🔒</div><div>Huna ruhusa</div></div>';
   const users = await getUsers();
   const sellers = users.filter(u => u.role === 'muuzaji');
   const sales = await getSales();
@@ -970,8 +988,9 @@ async function pgUsers(){
 async function toggleUser(id, active){ const { error } = await db.from('watumiaji').update({ active: !active }).eq('id', id); if(error) return toast(error.message, 'err'); toast(!active?'Ameruhusiwa':'Amezimwa', 'ok'); logAction('badili_mtumiaji', id); render(); }
 async function delUser(id){ if(!(await myConfirm('Futa muuzaji huyu kutoka kwenye biashara yako?'))) return; const { error } = await db.from('watumiaji').delete().eq('id', id); if(error) return toast(error.message, 'err'); toast('Amefutwa', 'ok'); logAction('futa_mtumiaji', id); render(); }
 
+/* ============ AUDIT ============ */
 async function pgAudit(){
-  if(!isOwner()) return '<div class="empty"><div class="e">🔒</div><div>Ni kwa mmiliki</div></div>';
+  if(!isOwner() && !isSuperAdmin()) return '<div class="empty"><div class="e">🔒</div><div>Ni kwa mmiliki</div></div>';
   const logs = await getAudit();
   return `
     <h2 class="pt">Kumbukumbu</h2>
@@ -993,8 +1012,9 @@ async function pgAudit(){
   `;
 }
 
+/* ============ BRANDING ============ */
 async function pgBranding(){
-  if(!isOwner()) return '<div class="empty"><div class="e">🔒</div><div>Ni kwa mmiliki</div></div>';
+  if(!isOwner() && !isSuperAdmin()) return '<div class="empty"><div class="e">🔒</div><div>Ni kwa mmiliki</div></div>';
   const b = getBrand();
   const logo = b.logo || 'BP';
   const hasImage = !!b.logoImage;
@@ -1085,6 +1105,187 @@ async function resetBranding(){
   render();
 }
 
+/* ============ SUPER ADMIN ============ */
+function setSaView(v){ state.saView = v; render(); }
+
+async function pgSuperAdmin(){
+  if(!isSuperAdmin()) return '<div class="empty"><div class="e">🔒</div><div>Ni kwa Super Admin tu</div></div>';
+
+  const { data: bizList } = await db.from('biashara').select('*').order('imeundwa', {ascending:false});
+  const { data: userList } = await db.from('watumiaji').select('*').order('imeundwa', {ascending:false});
+  const { data: salesList } = await db.from('mauzo').select('*').order('tarehe', {ascending:false});
+  const { data: prodList } = await db.from('bidhaa').select('*');
+  const { data: logList } = await db.from('kumbukumbu').select('*').order('tarehe', {ascending:false}).limit(100);
+
+  const businesses = bizList || [];
+  const users = userList || [];
+  const sales = salesList || [];
+  const prods = prodList || [];
+  const logs = logList || [];
+
+  const totalSales = sum(sales, 'jumla');
+  const totalProfit = sum(sales, 'faida');
+  const today = new Date(); today.setHours(0,0,0,0);
+  const todaySales = sales.filter(s => new Date(s.tarehe) >= today);
+
+  const views = [['overview','Muhtasari'],['biz','Biashara'],['users','Watumiaji'],['activity','Activity']];
+
+  return `
+    <h2 class="pt">👑 Super Admin</h2>
+    <p class="ps">Muonekano wa jumla wa mfumo wote</p>
+
+    <div class="stats">
+      <div class="stat dark"><div class="lb">Biashara</div><div class="vl">${businesses.length}</div></div>
+      <div class="stat dark"><div class="lb">Watumiaji Wote</div><div class="vl">${users.length}</div></div>
+      <div class="stat g"><div class="lb">Mauzo Jumla</div><div class="vl">${money(totalSales)}</div></div>
+      <div class="stat o"><div class="lb">Faida Jumla</div><div class="vl">${money(totalProfit)}</div></div>
+    </div>
+
+    <div style="display:flex;gap:7px;overflow-x:auto;padding-bottom:12px">
+      ${views.map(([k,v]) => `<button class="btn ${state.saView===k?'primary':'ghost'} sm" style="flex:none" onclick="setSaView('${k}')">${v}</button>`).join('')}
+    </div>
+
+    ${state.saView === 'overview' ? `
+      <div class="stats">
+        <div class="stat p"><div class="lb">Mauzo ya Leo</div><div class="vl">${money(sum(todaySales,'jumla'))}</div></div>
+        <div class="stat g"><div class="lb">Faida ya Leo</div><div class="vl">${money(sum(todaySales,'faida'))}</div></div>
+        <div class="stat"><div class="lb">Bidhaa Zote</div><div class="vl">${prods.length}</div></div>
+        <div class="stat"><div class="lb">Mauzo Yote</div><div class="vl">${sales.length}</div></div>
+      </div>
+      <div class="card">
+        <h3>🏆 Top Biashara kwa Mauzo</h3>
+        ${businesses.length ? businesses.map(b => {
+          const bSales = sales.filter(s => s.biashara_id === b.id);
+          return { b, total: sum(bSales,'jumla'), profit: sum(bSales,'faida'), count: bSales.length };
+        }).sort((a,b)=> b.total - a.total).map((x, i) => `
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:11px 0;${i<businesses.length-1?'border-bottom:1px solid rgba(255,255,255,0.5)':''}">
+            <div style="display:flex;gap:11px;align-items:center;min-width:0;flex:1">
+              <div style="width:34px;height:34px;border-radius:11px;background:linear-gradient(135deg,#5b4bff,#a55bff);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex:none">${i+1}</div>
+              <div style="min-width:0">
+                <div style="font-weight:700;font-size:14px">${esc(x.b.jina)}</div>
+                <div style="font-size:11.5px;color:var(--muted)">${x.count} mauzo</div>
+              </div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-weight:800;color:var(--primary);font-size:14px">${money(x.total)}</div>
+              <div style="font-size:11.5px;color:var(--ok);font-weight:700">Faida: ${money(x.profit)}</div>
+            </div>
+          </div>`).join('') : '<div class="empty"><div class="e">🏢</div><div>Hakuna biashara bado</div></div>'}
+      </div>
+    ` : ''}
+
+    ${state.saView === 'biz' ? `
+      <div class="card">
+        <h3>🏢 Biashara Zote (${businesses.length})</h3>
+        ${businesses.length ? businesses.map(b => {
+          const bUsers = users.filter(u => u.biashara_id === b.id);
+          const bSales = sales.filter(s => s.biashara_id === b.id);
+          const bProds = prods.filter(p => p.biashara_id === b.id);
+          const owner = bUsers.find(u => u.role === 'mmiliki');
+          return `
+            <div style="padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.5)">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap">
+                <div style="flex:1;min-width:0">
+                  <div style="font-weight:800;font-size:15.5px">${esc(b.jina)}</div>
+                  <div style="font-size:12px;color:var(--muted);margin-top:3px">
+                    Code: <b style="font-family:ui-monospace,monospace">${esc(b.code)}</b> · Mmiliki: ${esc(owner?.jina_kamili || '—')}
+                  </div>
+                  <div style="font-size:11.5px;color:var(--muted);margin-top:3px">Imeundwa: ${dstr(b.imeundwa)}</div>
+                </div>
+                <button class="btn ghost xs" onclick="viewBizSales('${b.id}')">👁️ Mauzo</button>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px">
+                <div style="background:rgba(91,75,255,0.1);padding:8px;border-radius:10px;text-align:center">
+                  <div style="font-size:9.5px;color:var(--muted);font-weight:700">WATUMIAJI</div>
+                  <div style="font-weight:800;font-size:14px">${bUsers.length}</div>
+                </div>
+                <div style="background:rgba(91,75,255,0.1);padding:8px;border-radius:10px;text-align:center">
+                  <div style="font-size:9.5px;color:var(--muted);font-weight:700">BIDHAA</div>
+                  <div style="font-weight:800;font-size:14px">${bProds.length}</div>
+                </div>
+                <div style="background:rgba(22,163,74,0.1);padding:8px;border-radius:10px;text-align:center">
+                  <div style="font-size:9.5px;color:var(--muted);font-weight:700">MAUZO</div>
+                  <div style="font-weight:800;font-size:14px">${bSales.length}</div>
+                </div>
+                <div style="background:rgba(245,158,11,0.1);padding:8px;border-radius:10px;text-align:center">
+                  <div style="font-size:9.5px;color:var(--muted);font-weight:700">FAIDA</div>
+                  <div style="font-weight:800;font-size:12.5px">${money(sum(bSales,'faida'))}</div>
+                </div>
+              </div>
+            </div>`;
+        }).join('') : '<div class="empty"><div class="e">🏢</div><div>Hakuna biashara bado</div></div>'}
+      </div>
+    ` : ''}
+
+    ${state.saView === 'users' ? `
+      <div class="card">
+        <h3>👥 Watumiaji Wote (${users.length})</h3>
+        <div class="tw"><table>
+          <thead><tr><th>Jina</th><th>Username</th><th>Role</th><th>Biashara</th><th class="num">Mauzo</th></tr></thead>
+          <tbody>${users.map(u => {
+            const b = businesses.find(x => x.id === u.biashara_id);
+            const us = sales.filter(s => s.muuzaji_id === u.id);
+            const roleBadge = u.role === 'super_admin' ? '<span class="badge err">Super</span>' : (u.role === 'mmiliki' ? '<span class="badge info">Mmiliki</span>' : '<span class="badge ok">Muuzaji</span>');
+            return `<tr>
+              <td><b>${esc(u.jina_kamili)}</b>${!u.active?' <span class="badge err">Off</span>':''}</td>
+              <td style="font-family:ui-monospace,monospace;font-size:12.5px">@${esc(u.username)}</td>
+              <td>${roleBadge}</td>
+              <td style="font-size:12.5px">${esc(b?.jina || '—')}</td>
+              <td class="num">${us.length} · ${money(sum(us,'jumla'))}</td>
+            </tr>`;
+          }).join('')}</tbody>
+        </table></div>
+      </div>
+    ` : ''}
+
+    ${state.saView === 'activity' ? `
+      <div class="card">
+        <h3>📜 Activity ya Karibuni (${logs.length})</h3>
+        ${logs.length ? logs.map(l => {
+          const u = users.find(x => x.id === l.mtumiaji_id);
+          const b = businesses.find(x => x.id === l.biashara_id);
+          return `
+            <div style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.5)">
+              <div style="display:flex;gap:8px;align-items:flex-start">
+                <div style="width:32px;height:32px;border-radius:10px;background:rgba(91,75,255,0.15);color:#4338ca;display:flex;align-items:center;justify-content:center;font-size:14px;flex:none">
+                  ${l.kitendo === 'login' ? '🔑' : l.kitendo === 'logout' ? '🚪' : l.kitendo === 'rekodi_mauzo' ? '💰' : l.kitendo === 'ongeza_bidhaa' ? '📦' : '📝'}
+                </div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-weight:700;font-size:13px">${esc((l.kitendo||'').replace(/_/g,' ').toUpperCase())}</div>
+                  <div style="font-size:12px;color:var(--muted)">${esc(l.maelezo || '—')}</div>
+                  <div style="font-size:11px;color:var(--muted);margin-top:2px">
+                    ${esc(u?.jina_kamili || l.mtumiaji_jina || '—')} · ${esc(b?.jina || '—')} · ${dtstr(l.tarehe)}
+                  </div>
+                </div>
+              </div>
+            </div>`;
+        }).join('') : '<div class="empty"><div class="e">📜</div><div>Hakuna activity bado</div></div>'}
+      </div>
+    ` : ''}
+  `;
+}
+
+async function viewBizSales(bid){
+  const { data: sales } = await db.from('mauzo').select('*').eq('biashara_id', bid).order('tarehe',{ascending:false}).limit(100);
+  const { data: biz } = await db.from('biashara').select('jina').eq('id', bid).single();
+  const list = sales || [];
+  showModal(`Mauzo ya ${esc(biz?.jina || 'Biashara')}`, `
+    <p style="font-size:13.5px;color:var(--muted);margin-bottom:12px">Mauzo ${list.length} ya mwisho</p>
+    ${list.length ? `<div class="tw"><table>
+      <thead><tr><th>Tarehe</th><th>Bidhaa</th><th class="num">Idadi</th><th class="num">Jumla</th><th class="num">Faida</th><th>Muuzaji</th></tr></thead>
+      <tbody>${list.map(s => `<tr>
+        <td style="font-size:12px;color:var(--muted)">${dtstr(s.tarehe)}</td>
+        <td><b>${esc(s.bidhaa_jina)}</b></td>
+        <td class="num">${num(s.idadi)}</td>
+        <td class="num">${money(s.jumla)}</td>
+        <td class="num pos">${money(s.faida)}</td>
+        <td style="font-size:12px">${esc(s.muuzaji_jina||'—')}</td>
+      </tr>`).join('')}</tbody>
+    </table></div>` : '<div class="empty"><div class="e">💰</div><div>Hakuna mauzo</div></div>'}
+  `);
+}
+
+/* ============ REPORTS ============ */
 function setPeriod(p){ state.period = p; render(); }
 function setReportView(v){ state.reportView = v; render(); }
 
@@ -1143,6 +1344,7 @@ async function pgReports(){
   `;
 }
 
+/* ============ SETTINGS ============ */
 async function pgSettings(){
   const sales = await getSales();
   const prods = await getProducts();
@@ -1152,12 +1354,35 @@ async function pgSettings(){
   const lastBackup = localStorage.getItem(BACKUP_KEY);
   const autoBackupOn = localStorage.getItem('bp_auto_backup') === '1';
   const brand = getBrand();
+
+  if(isSuperAdmin()){
+    return `
+      <h2 class="pt">Mipangilio</h2><p class="ps">Super Admin</p>
+      <div class="card" style="background:linear-gradient(135deg,#0f172a,#334155);color:#fff;border:1px solid rgba(255,255,255,0.3);box-shadow:0 12px 32px rgba(15,23,42,0.35)">
+        <div style="font-size:12px;opacity:.9;margin-bottom:8px;font-weight:700;letter-spacing:.5px">ROLE YAKO</div>
+        <div style="font-size:24px;font-weight:900;letter-spacing:2px;text-align:center;padding:10px 0">👑 SUPER ADMIN</div>
+        <p style="font-size:13px;opacity:.85;text-align:center;line-height:1.6">Una uwezo wa kuona biashara zote, watumiaji wote, na activity yote ya mfumo.</p>
+      </div>
+      <div class="card"><h3>👤 Taarifa Zako</h3><div class="hint" style="margin-top:0"><b>Jina:</b> ${esc(state.profile.jina_kamili)}<br><b>Username:</b> @${esc(state.profile.username)}<br><b>Role:</b> 👑 Super Administrator</div></div>
+      <button class="btn primary full" onclick="go('superadmin')">👑 Nenda Super Admin</button>
+      <div class="card"><h3>🎨 Branding</h3><p style="font-size:13.5px;color:var(--muted);margin-bottom:12px">Badilisha jina, logo, na mawasiliano.</p><button class="btn ghost full" style="margin-top:0" onclick="go('branding')">🎨 Nenda Branding</button></div>
+      <div class="card"><h3>📜 Kisheria</h3><button class="btn ghost full" style="margin-top:0" onclick="showTerms()">Masharti ya Matumizi</button><button class="btn ghost full" style="margin-top:8px" onclick="showPrivacy()">Sera ya Faragha</button></div>
+      <button class="btn ghost full" onclick="logout()">🚪 Toka</button>
+      <p style="text-align:center;color:var(--muted);font-size:12px;margin-top:22px">${esc(brand.name||'BiasharaPro')} v7.3 · Super Admin</p>
+    `;
+  }
+
   return `
     <h2 class="pt">Mipangilio</h2><p class="ps">Taarifa za akaunti</p>
     ${isOwner() ? `<div class="card" style="background:linear-gradient(135deg,#5b4bff,#a55bff);color:#fff;border:1px solid rgba(255,255,255,0.3);box-shadow:0 12px 32px rgba(91,75,255,0.35)"><div style="font-size:12px;opacity:.9;margin-bottom:8px;font-weight:700;letter-spacing:.5px">BUSINESS CODE YAKO</div><div style="font-size:28px;font-weight:900;letter-spacing:5px;font-family:ui-monospace,monospace;text-align:center;padding:10px 0">${esc(code)}</div><button class="btn full" style="background:rgba(255,255,255,.22);color:#fff;margin-top:8px;backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.3)" onclick="copyCode('${esc(code)}')">📋 Nakili</button></div>` : ''}
     <div class="card"><h3>🏢 Taarifa za Biashara</h3><div class="hint" style="margin-top:0"><b>Jina la Biashara:</b> ${esc(state.profile.biashara?.jina||'—')}<br><b>Mmiliki:</b> ${esc(owner?.jina_kamili||'—')}<br><b>Username yako:</b> @${esc(state.profile.username||'—')}<br><b>Wewe ni:</b> ${isOwner()?'Mmiliki':'Muuzaji'}<br><b>Mfumo:</b> ${esc(brand.name||'BiasharaPro')}<br><b>Imeanzishwa:</b> ${dstr(state.profile.biashara?.imeundwa||Date.now())}</div></div>
     <div class="card"><h3>📊 Data</h3><div class="stats" style="grid-template-columns:repeat(3,1fr);margin-bottom:0"><div class="stat"><div class="lb">Bidhaa</div><div class="vl">${prods.length}</div></div><div class="stat"><div class="lb">Mauzo</div><div class="vl">${sales.length}</div></div><div class="stat"><div class="lb">Watumiaji</div><div class="vl">${users.length}</div></div></div></div>
     ${isOwner() ? `
+    <div class="card">
+      <h3>🎨 Branding</h3>
+      <p style="font-size:13.5px;color:var(--muted);line-height:1.7;margin-bottom:12px">Badilisha jina, logo, na mawasiliano ya mfumo.</p>
+      <button class="btn primary full" style="margin-top:0" onclick="go('branding')">🎨 Nenda Branding</button>
+    </div>
     <div class="card">
       <h3>💾 Backup Automatic</h3>
       <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0">
@@ -1169,16 +1394,7 @@ async function pgSettings(){
     </div>
     ` : ''}
     <div class="card">
-     ${isOwner() ? `
-<div class="card">
-  <h3>🎨 Branding</h3>
-  <p style="font-size:13.5px;color:var(--muted);line-height:1.7;margin-bottom:12px">Badilisha jina, logo, na mawasiliano ya mfumo wako.</p>
-  <button class="btn primary full" style="margin-top:0" onclick="go('branding')">🎨 Nenda Branding</button>
-</div>
-` : ''}
-
-<div class="card">
-  <h3>📲 Weka kama App</h3>
+      <h3>📲 Weka kama App</h3>
       <p style="font-size:13.5px;color:var(--muted);line-height:1.7">Bonyeza menu ya browser kisha <b>"Add to Home Screen"</b>.</p>
       <button class="btn ghost full" style="margin-top:10px" onclick="installPWA()">📲 Weka kwenye Simu</button>
     </div>
@@ -1189,7 +1405,7 @@ async function pgSettings(){
     </div>
     <div class="card"><h3>💾 Hifadhi Nakala (JSON)</h3><p style="font-size:13.5px;color:var(--muted);margin-bottom:12px">Pakua data yote kama faili la JSON.</p><button class="btn ghost full" style="margin-top:0" onclick="exportData()">⬇️ Pakua Data (JSON)</button></div>
     <button class="btn ghost full" onclick="logout()">🚪 Toka</button>
-    <p style="text-align:center;color:var(--muted);font-size:12px;margin-top:22px">${esc(brand.name||'BiasharaPro')} v7.2 · Liquid Glass</p>
+    <p style="text-align:center;color:var(--muted);font-size:12px;margin-top:22px">${esc(brand.name||'BiasharaPro')} v7.3 · Liquid Glass</p>
   `;
 }
 
