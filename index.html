@@ -1218,24 +1218,43 @@ async function pgSuperAdmin(){
     ` : ''}
 
     ${state.saView === 'users' ? `
-      <div class="card">
-        <h3>👥 Watumiaji Wote (${users.length})</h3>
-        <div class="tw"><table>
-          <thead><tr><th>Jina</th><th>Username</th><th>Role</th><th>Biashara</th><th class="num">Mauzo</th></tr></thead>
-          <tbody>${users.map(u => {
-            const b = businesses.find(x => x.id === u.biashara_id);
-            const us = sales.filter(s => s.muuzaji_id === u.id);
-            const roleBadge = u.role === 'super_admin' ? '<span class="badge err">Super</span>' : (u.role === 'mmiliki' ? '<span class="badge info">Mmiliki</span>' : '<span class="badge ok">Muuzaji</span>');
-            return `<tr>
-              <td><b>${esc(u.jina_kamili)}</b>${!u.active?' <span class="badge err">Off</span>':''}</td>
-              <td style="font-family:ui-monospace,monospace;font-size:12.5px">@${esc(u.username)}</td>
-              <td>${roleBadge}</td>
-              <td style="font-size:12.5px">${esc(b?.jina || '—')}</td>
-              <td class="num">${us.length} · ${money(sum(us,'jumla'))}</td>
-            </tr>`;
-          }).join('')}</tbody>
-        </table></div>
+    <div class="card">
+  <h3>👥 Watumiaji Wote (${users.length})</h3>
+  <p style="font-size:12.5px;color:var(--muted);margin-bottom:12px">Bonyeza 🗑️ kufuta mtumiaji yeyote</p>
+  ${users.map((u,i) => {
+  const b = businesses.find(x => x.id === u.biashara_id);
+  const us = sales.filter(s => s.muuzaji_id === u.id);
+  const roleBadge = u.role === 'super_admin' ? '<span class="badge err">Super</span>' : (u.role === 'mmiliki' ? '<span class="badge info">Mmiliki</span>' : '<span class="badge ok">Muuzaji</span>');
+  const isMe = u.id === state.profile.id;
+  return `
+  <div style="padding:12px 0;${i<users.length-1?'border-bottom:1px solid rgba(255,255,255,0.5)':''}">
+    <div style="display:flex;align-items:center;gap:11px">
+      <div style="width:42px;height:42px;border-radius:14px;flex:none;background:${u.role==='super_admin'?'linear-gradient(135deg,#0f172a,#334155)':(u.role==='mmiliki'?'linear-gradient(135deg,#5b4bff,#a55bff)':'rgba(91,75,255,0.15)')};color:${u.role==='muuzaji'?'#4338ca':'#fff'};display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px">
+        ${esc((u.jina_kamili||'?')[0].toUpperCase())}
       </div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:700;font-size:14px">
+          ${esc(u.jina_kamili)} ${roleBadge} ${!u.active?'<span class="badge err">Off</span>':''}
+          ${isMe?'<span class="badge info">Wewe</span>':''}
+        </div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px">
+          @${esc(u.username)} · ${esc(b?.jina || '—')}
+        </div>
+        <div style="font-size:11.5px;color:var(--muted);margin-top:2px">
+          Mauzo: ${us.length} · ${money(sum(us,'jumla'))} · Imeundwa: ${dstr(u.imeundwa)}
+        </div>
+      </div>
+      ${!isMe ? `
+      <div style="display:flex;flex-direction:column;gap:6px;flex:none">
+        <button class="btn ghost xs" onclick="saToggleUser('${u.id}', ${u.active})" title="${u.active?'Zima':'Ruhusu'}">${u.active?'🚫':'✅'}</button>
+        <button class="btn danger xs" onclick="saDelUser('${u.id}')" title="Futa">🗑️</button>
+      </div>
+      ` : ''}
+    </div>
+  </div>
+  `;
+  }).join('')}
+</div>
     ` : ''}
 
     ${state.saView === 'activity' ? `
@@ -1264,7 +1283,32 @@ async function pgSuperAdmin(){
     ` : ''}
   `;
 }
+async function saToggleUser(id, active){
+  const { error } = await db.from('watumiaji').update({ active: !active }).eq('id', id);
+  if(error) return toast(error.message, 'err');
+  toast(!active ? 'Mtumiaji ameruhusiwa' : 'Mtumiaji amezimwa', 'ok');
+  await logAction('super_badili_user', 'Mtumiaji: ' + id);
+  render();
+}
 
+async function saDelUser(id){
+  if(!(await myConfirm('Futa mtumiaji huyu kabisa? Mauzo yake yatabaki kwenye kumbukumbu.'))) return;
+  
+  // Pata taarifa za mtumiaji kabla ya kufuta
+  const { data: u } = await db.from('watumiaji').select('*').eq('id', id).single();
+  if(!u) return toast('Mtumiaji haipatikani', 'err');
+  
+  if(u.role === 'super_admin') return toast('Hauwezi kufuta Super Admin mwingine', 'err');
+  if(u.id === state.profile.id) return toast('Hauwezi kufuta akaunti yako', 'err');
+  
+  // Futa mtumiaji
+  const { error } = await db.from('watumiaji').delete().eq('id', id);
+  if(error) return toast(error.message, 'err');
+  
+  toast('Mtumiaji amefutwa: ' + u.jina_kamili, 'ok');
+  await logAction('super_futa_user', u.jina_kamili + ' (@' + u.username + ')');
+  render();
+}
 async function viewBizSales(bid){
   const { data: sales } = await db.from('mauzo').select('*').eq('biashara_id', bid).order('tarehe',{ascending:false}).limit(100);
   const { data: biz } = await db.from('biashara').select('jina').eq('id', bid).single();
