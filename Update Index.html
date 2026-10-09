@@ -1,0 +1,1312 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#5b4bff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="BiasharaPro">
+<title>BiasharaPro</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/js-sha256/0.9.0/sha256.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --primary:#5b4bff;
+  --primary2:#7c6cff;
+  --bg:#eef0ff;
+  --card:rgba(255,255,255,0.65);
+  --text:#0f172a;
+  --muted:#64748b;
+  --border:rgba(255,255,255,0.5);
+  --ok:#16a34a;
+  --err:#dc2626;
+  --warn:#f59e0b;
+  --radius:24px;
+  --glass-blur:blur(28px) saturate(180%);
+}
+html,body{min-height:100%}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',system-ui,sans-serif;
+  color:var(--text);font-size:15px;line-height:1.5;background:#eef0ff;
+  position:relative;overflow-x:hidden;-webkit-font-smoothing:antialiased;
+}
+body::before{content:'';position:fixed;inset:0;z-index:-2;background:linear-gradient(135deg,#e0e7ff 0%,#f0e7ff 50%,#ffe7f0 100%)}
+body::after{
+  content:'';position:fixed;inset:0;z-index:-1;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(120,90,255,0.45) 0%, transparent 40%),
+    radial-gradient(circle at 85% 15%, rgba(255,120,200,0.40) 0%, transparent 45%),
+    radial-gradient(circle at 75% 85%, rgba(80,180,255,0.45) 0%, transparent 45%),
+    radial-gradient(circle at 20% 90%, rgba(255,180,120,0.35) 0%, transparent 45%);
+  filter:blur(40px);pointer-events:none;
+}
+.hidden{display:none!important}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,select,textarea{
+  font-family:inherit;font-size:15px;width:100%;padding:13px 16px;
+  border:1px solid rgba(255,255,255,0.7);border-radius:16px;
+  background:rgba(255,255,255,0.55);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
+  color:var(--text);outline:none;transition:.25s;
+}
+input:focus,select:focus,textarea:focus{
+  background:rgba(255,255,255,0.85);border-color:rgba(91,75,255,0.5);
+  box-shadow:0 0 0 4px rgba(91,75,255,0.15);
+}
+label{display:block;font-size:13px;font-weight:600;color:var(--muted);margin:14px 0 6px;letter-spacing:-0.2px}
+
+#splash{
+  position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;color:#fff;transition:opacity .5s;
+  background:linear-gradient(135deg,#5b4bff,#a55bff 50%,#ff6cb5);overflow:hidden;
+}
+#splash::before{
+  content:'';position:absolute;inset:-50%;
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4) 0%, transparent 40%),
+    radial-gradient(circle at 70% 70%, rgba(255,255,255,0.3) 0%, transparent 40%);
+  filter:blur(30px);animation:rotateBg 20s linear infinite;
+}
+@keyframes rotateBg{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+#splash.hide{opacity:0;pointer-events:none}
+.splash-logo{
+  width:100px;height:100px;border-radius:28px;background:rgba(255,255,255,0.25);
+  backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);
+  border:1.5px solid rgba(255,255,255,0.5);
+  box-shadow:0 20px 60px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.6);
+  display:flex;align-items:center;justify-content:center;font-weight:900;font-size:40px;
+  margin-bottom:20px;animation:pulse 2s infinite;overflow:hidden;position:relative;z-index:1;
+}
+.splash-logo img{width:100%;height:100%;object-fit:cover}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+.splash-name{font-size:26px;font-weight:800;letter-spacing:-0.5px;position:relative;z-index:1}
+.splash-sub{font-size:13.5px;opacity:.9;margin-top:6px;position:relative;z-index:1}
+.splash-loader{margin-top:32px;width:44px;height:5px;background:rgba(255,255,255,.3);border-radius:5px;overflow:hidden;position:relative;z-index:1}
+.splash-loader::before{content:'';position:absolute;left:-50%;top:0;width:50%;height:100%;background:#fff;border-radius:5px;animation:load 1s infinite}
+@keyframes load{0%{left:-50%}100%{left:100%}}
+
+#landing{min-height:100vh;color:#fff;padding:24px;position:relative;overflow:hidden;background:linear-gradient(135deg,#5b4bff 0%,#a55bff 50%,#ff6cb5 100%)}
+#landing::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 20% 20%, rgba(255,255,255,0.25) 0%, transparent 40%),radial-gradient(circle at 80% 80%, rgba(255,255,255,0.2) 0%, transparent 40%);pointer-events:none}
+.landing-wrap{max-width:1100px;margin:0 auto;position:relative;z-index:1}
+.landing-nav{display:flex;align-items:center;justify-content:space-between;padding:8px 0 20px;flex-wrap:wrap;gap:12px}
+.landing-brand{display:flex;align-items:center;gap:12px}
+.landing-brand .l-logo{
+  width:48px;height:48px;border-radius:16px;background:rgba(255,255,255,0.22);
+  backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);
+  border:1px solid rgba(255,255,255,0.4);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.5), 0 8px 24px rgba(0,0,0,0.15);
+  display:flex;align-items:center;justify-content:center;font-weight:900;font-size:19px;overflow:hidden;
+}
+.landing-brand .l-logo img{width:100%;height:100%;object-fit:cover}
+.landing-brand b{font-size:18px;letter-spacing:-0.3px}
+.landing-nav .nav-cta{display:flex;gap:8px}
+.landing-nav .nav-cta button{padding:10px 18px;border-radius:14px;font-weight:700;font-size:14px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.3);transition:.2s}
+.landing-nav .nav-cta .ghost-btn{background:rgba(255,255,255,.15);color:#fff}
+.landing-nav .nav-cta .solid-btn{background:rgba(255,255,255,0.95);color:var(--primary);box-shadow:0 8px 24px rgba(0,0,0,0.2)}
+.hero{text-align:center;padding:30px 0 40px}
+.hero .badge-hero{display:inline-block;padding:8px 16px;border-radius:20px;background:rgba(255,255,255,.18);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.3);font-size:12.5px;font-weight:600;margin-bottom:20px}
+.hero h1{font-size:34px;font-weight:900;line-height:1.15;letter-spacing:-1px;margin-bottom:16px}
+.hero h1 .grad{background:linear-gradient(90deg,#fff,#ffe0b3);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{font-size:15.5px;opacity:.95;max-width:520px;margin:0 auto 28px;line-height:1.7}
+.hero-cta{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.hero-cta button{padding:15px 28px;border-radius:18px;font-weight:800;font-size:15px;transition:.2s;border:1px solid rgba(255,255,255,0.3)}
+.hero-cta .p1{background:rgba(255,255,255,0.98);color:var(--primary);box-shadow:0 12px 36px rgba(0,0,0,0.25)}
+.hero-cta .p2{background:rgba(255,255,255,.15);color:#fff;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+.features-grid{display:grid;grid-template-columns:1fr;gap:14px;margin-top:30px}
+@media(min-width:640px){.features-grid{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:900px){.features-grid{grid-template-columns:repeat(3,1fr)}}
+.feature{background:rgba(255,255,255,.14);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border:1px solid rgba(255,255,255,0.28);border-radius:22px;padding:20px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.4), 0 8px 24px rgba(0,0,0,0.1);transition:.2s}
+.feature .f-icon{width:48px;height:48px;border-radius:14px;background:rgba(255,255,255,.22);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:14px}
+.feature b{font-size:16px;display:block;margin-bottom:6px;letter-spacing:-0.3px}
+.feature p{font-size:13.5px;opacity:.92;line-height:1.6}
+.landing-footer{text-align:center;padding:30px 0 10px;font-size:13px;opacity:.88}
+.landing-footer a{color:#fff;text-decoration:none;margin:0 8px;cursor:pointer;padding:6px 10px;border-radius:10px;background:rgba(255,255,255,0.12);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);display:inline-block;border:1px solid rgba(255,255,255,0.2)}
+
+.auth{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;position:relative;overflow:hidden}
+.auth::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,#5b4bff 0%,#a55bff 50%,#ff6cb5 100%);z-index:0}
+.auth::after{content:'';position:absolute;inset:0;z-index:0;background:radial-gradient(circle at 20% 20%, rgba(255,255,255,0.25) 0%, transparent 40%),radial-gradient(circle at 80% 80%, rgba(255,255,255,0.2) 0%, transparent 40%)}
+.auth-card{background:rgba(255,255,255,0.75);backdrop-filter:blur(40px) saturate(200%);-webkit-backdrop-filter:blur(40px) saturate(200%);border:1.5px solid rgba(255,255,255,0.65);box-shadow:0 24px 60px rgba(31,38,135,0.25), inset 0 1px 0 rgba(255,255,255,0.7);width:100%;max-width:440px;border-radius:28px;padding:30px 24px;position:relative;z-index:1}
+.auth-logo{width:70px;height:70px;border-radius:22px;background:linear-gradient(135deg,#5b4bff,#a55bff);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:24px;margin:0 auto 14px;overflow:hidden;box-shadow:0 12px 30px rgba(91,75,255,0.35), inset 0 1px 0 rgba(255,255,255,0.3)}
+.auth-logo img{width:100%;height:100%;object-fit:cover}
+.auth h1{text-align:center;font-size:24px;margin-bottom:6px;letter-spacing:-0.5px;font-weight:800}
+.auth p.sub{text-align:center;color:var(--muted);font-size:13.5px;margin-bottom:20px}
+.auth .back-link{display:block;text-align:center;font-size:13.5px;color:var(--muted);margin-top:16px;cursor:pointer;font-weight:600}
+.version{text-align:center;font-size:11px;color:var(--muted);margin-top:10px;opacity:.7}
+.tabs{display:flex;background:rgba(255,255,255,0.5);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.6);border-radius:16px;padding:4px;margin-bottom:8px}
+.tabs button{flex:1;padding:11px;border-radius:12px;font-weight:700;font-size:14px;color:var(--muted);transition:.2s}
+.tabs button.on{background:rgba(255,255,255,0.98);color:var(--primary);box-shadow:0 4px 12px rgba(91,75,255,0.15)}
+
+.app{display:none}.app.on{display:block;position:relative;z-index:1}
+.sidebar{display:none}.main{min-width:0}
+.topbar{position:sticky;top:0;z-index:50;background:rgba(255,255,255,0.65);backdrop-filter:blur(30px) saturate(180%);-webkit-backdrop-filter:blur(30px) saturate(180%);border-bottom:1px solid rgba(255,255,255,0.5);padding:14px 16px;display:flex;align-items:center;gap:12px}
+.topbar .tb-logo{width:40px;height:40px;border-radius:13px;background:linear-gradient(135deg,#5b4bff,#a55bff);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;flex:none;overflow:hidden;box-shadow:0 6px 16px rgba(91,75,255,0.3)}
+.topbar .tb-logo img{width:100%;height:100%;object-fit:cover}
+.topbar b{font-size:15.5px;display:block;line-height:1.2;letter-spacing:-0.3px}
+.topbar small{color:var(--muted);font-size:12px}
+.page{padding:16px 16px 120px;max-width:1100px;margin:0 auto}
+h2.pt{font-size:24px;margin-bottom:4px;letter-spacing:-0.6px;font-weight:800}
+p.ps{color:var(--muted);font-size:13.5px;margin-bottom:18px}
+
+.bnav{
+  position:fixed;
+  bottom:calc(14px + env(safe-area-inset-bottom));
+  left:14px;
+  right:14px;
+  z-index:60;
+  max-width:560px;
+  margin:0 auto;
+  background:rgba(255,255,255,0.72);
+  backdrop-filter:blur(44px) saturate(200%);
+  -webkit-backdrop-filter:blur(44px) saturate(200%);
+  border:1px solid rgba(255,255,255,0.75);
+  border-radius:34px;
+  display:flex;
+  padding:8px 8px;
+  box-shadow:
+    0 12px 44px rgba(31,38,135,0.2),
+    0 4px 12px rgba(31,38,135,0.08),
+    inset 0 1px 0 rgba(255,255,255,0.9);
+  transition:.3s;
+}
+.bnav a{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:2px;
+  padding:9px 4px;
+  font-size:10px;
+  font-weight:700;
+  color:var(--muted);
+  border-radius:26px;
+  transition:all .3s cubic-bezier(.34,1.56,.64,1);
+  position:relative;
+  letter-spacing:-0.2px;
+}
+.bnav a span{font-size:21px;line-height:1;transition:.3s cubic-bezier(.34,1.56,.64,1)}
+.bnav a.active{
+  color:var(--primary);
+  background:linear-gradient(135deg,rgba(91,75,255,0.18),rgba(165,91,255,0.14));
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.7),
+    0 4px 12px rgba(91,75,255,0.15);
+}
+.bnav a.active span{transform:scale(1.12)}
+.bnav a:active{transform:scale(.94)}
+@media(min-width:900px){
+  .app.on{display:flex}
+  .sidebar{display:flex;flex-direction:column;width:250px;flex:none;background:rgba(255,255,255,0.55);backdrop-filter:blur(30px) saturate(180%);-webkit-backdrop-filter:blur(30px) saturate(180%);border-right:1px solid rgba(255,255,255,0.5);height:100vh;position:sticky;top:0}
+  .bnav{display:none}.topbar{display:none}.page{padding:28px 32px 40px}
+}
+.brand{display:flex;align-items:center;gap:11px;padding:20px 18px 16px;border-bottom:1px solid rgba(255,255,255,0.4)}
+.brand .logo{width:44px;height:44px;border-radius:15px;background:linear-gradient(135deg,#5b4bff,#a55bff);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;flex:none;overflow:hidden;box-shadow:0 8px 20px rgba(91,75,255,0.3)}
+.brand .logo img{width:100%;height:100%;object-fit:cover}
+.bname{font-weight:800;font-size:15px;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:-0.3px}
+.brole{font-size:11.5px;color:var(--muted)}
+.nav{flex:1;padding:14px 12px;overflow-y:auto}
+.nav-item{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;font-weight:600;font-size:14px;color:var(--muted);cursor:pointer;margin-bottom:4px;transition:.2s}
+.nav-item:hover{background:rgba(255,255,255,0.6);color:var(--text)}
+.nav-item.active{background:rgba(91,75,255,0.15);color:var(--primary);box-shadow:inset 0 1px 0 rgba(255,255,255,0.5)}
+.nav-item span{font-size:18px;width:24px;text-align:center}
+.side-foot{border-top:1px solid rgba(255,255,255,0.4);padding:14px}
+.uinfo{margin-bottom:10px}
+.uname{font-weight:700;font-size:14px}
+.urole{font-size:12px;color:var(--muted)}
+
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:18px}
+@media(min-width:640px){.stats{grid-template-columns:repeat(4,1fr)}}
+.stat{background:rgba(255,255,255,0.6);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border:1px solid rgba(255,255,255,0.6);box-shadow:inset 0 1px 0 rgba(255,255,255,0.7), 0 4px 16px rgba(31,38,135,0.08);border-radius:22px;padding:16px;transition:.2s}
+.stat .lb{font-size:11.5px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+.stat .vl{font-size:20px;font-weight:800;margin-top:6px;letter-spacing:-0.4px}
+.stat.g{background:linear-gradient(135deg,rgba(22,163,74,0.9),rgba(21,128,61,0.85));color:#fff;border:1px solid rgba(255,255,255,0.35)}
+.stat.g .lb{color:rgba(255,255,255,.9)}
+.stat.p{background:linear-gradient(135deg,rgba(91,75,255,0.92),rgba(165,91,255,0.85));color:#fff;border:1px solid rgba(255,255,255,0.35)}
+.stat.p .lb{color:rgba(255,255,255,.9)}
+.stat.o{background:linear-gradient(135deg,rgba(245,158,11,0.92),rgba(217,119,6,0.85));color:#fff;border:1px solid rgba(255,255,255,0.35)}
+.stat.o .lb{color:rgba(255,255,255,.9)}
+.card{background:rgba(255,255,255,0.6);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border:1px solid rgba(255,255,255,0.6);box-shadow:inset 0 1px 0 rgba(255,255,255,0.7), 0 8px 24px rgba(31,38,135,0.08);border-radius:22px;padding:18px;margin-bottom:16px}
+.card h3{font-size:16px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:8px;font-weight:800;letter-spacing:-0.3px}
+.head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.btn{padding:11px 18px;border-radius:14px;font-weight:700;font-size:14px;display:inline-flex;align-items:center;justify-content:center;gap:7px;transition:.2s;border:1px solid transparent}
+.btn:active{transform:scale(.96)}
+.btn.primary{background:linear-gradient(135deg,#5b4bff,#7c6cff);color:#fff;box-shadow:0 8px 20px rgba(91,75,255,0.3), inset 0 1px 0 rgba(255,255,255,0.3);border-color:rgba(255,255,255,0.2)}
+.btn.ghost{background:rgba(255,255,255,0.6);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-color:rgba(255,255,255,0.7);color:var(--text);box-shadow:inset 0 1px 0 rgba(255,255,255,0.7)}
+.btn.danger{background:linear-gradient(135deg,rgba(220,38,38,0.9),rgba(185,28,28,0.85));color:#fff;box-shadow:0 8px 20px rgba(220,38,38,0.25)}
+.btn.ok{background:linear-gradient(135deg,rgba(22,163,74,0.9),rgba(21,128,61,0.85));color:#fff;box-shadow:0 8px 20px rgba(22,163,74,0.25)}
+.btn.green{background:linear-gradient(135deg,#25D366,#128C7E);color:#fff;box-shadow:0 8px 20px rgba(37,211,102,0.3)}
+.btn.full{width:100%;margin-top:18px;padding:15px}
+.btn.sm{padding:8px 13px;font-size:13px;border-radius:11px}
+.btn.xs{padding:6px 10px;font-size:12px;border-radius:9px}
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -18px;padding:0 18px}
+table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:520px}
+th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);padding:10px 12px;border-bottom:1px solid rgba(255,255,255,0.5);white-space:nowrap;font-weight:700}
+td{padding:13px 12px;border-bottom:1px solid rgba(255,255,255,0.4);white-space:nowrap;font-size:13.5px}
+tr:last-child td{border-bottom:none}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+.pos{color:var(--ok);font-weight:700}
+.neg{color:var(--err);font-weight:700}
+.badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:11.5px;font-weight:700}
+.badge.ok{background:rgba(22,163,74,0.15);color:#15803d}
+.badge.warn{background:rgba(245,158,11,0.18);color:#b45309}
+.badge.err{background:rgba(220,38,38,0.15);color:#b91c1c}
+.badge.info{background:rgba(91,75,255,0.15);color:#4338ca}
+.empty{text-align:center;padding:44px 18px;color:var(--muted)}
+.empty .e{font-size:48px;margin-bottom:12px;opacity:.6}
+.hint{background:rgba(255,255,255,0.5);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px dashed rgba(255,255,255,0.7);border-radius:16px;padding:12px 14px;font-size:13px;margin-top:14px;color:var(--muted);line-height:1.7}
+.hint b{color:var(--text)}
+.code-box{background:linear-gradient(135deg,#5b4bff,#a55bff);color:#fff;padding:18px;border-radius:20px;text-align:center;margin:14px 0;box-shadow:0 12px 32px rgba(91,75,255,0.35), inset 0 1px 0 rgba(255,255,255,0.3);border:1px solid rgba(255,255,255,0.25)}
+.code-box .code{font-size:28px;font-weight:900;letter-spacing:4px;font-family:ui-monospace,monospace}
+.modal{position:fixed;inset:0;z-index:200;display:flex;align-items:flex-end;justify-content:center;padding:0;background:rgba(15,23,42,0.35);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+@media(min-width:600px){.modal{align-items:center;padding:20px}}
+.modal-box{background:rgba(255,255,255,0.85);backdrop-filter:blur(40px) saturate(200%);-webkit-backdrop-filter:blur(40px) saturate(200%);border:1.5px solid rgba(255,255,255,0.7);width:100%;max-width:460px;border-radius:28px 28px 0 0;max-height:92vh;overflow-y:auto;animation:up .3s cubic-bezier(.34,1.56,.64,1);box-shadow:0 -20px 60px rgba(31,38,135,0.25), inset 0 1px 0 rgba(255,255,255,0.7)}
+@media(min-width:600px){.modal-box{border-radius:28px}}
+@keyframes up{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
+.modal-head{position:sticky;top:0;background:rgba(255,255,255,0.75);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid rgba(255,255,255,0.5);z-index:2}
+.modal-head h3{font-size:17px;font-weight:800;letter-spacing:-0.3px}
+.modal-body{padding:18px 20px 24px;line-height:1.7;font-size:14.5px}
+.icon-btn{width:34px;height:34px;border-radius:12px;background:rgba(255,255,255,0.6);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.7);color:var(--muted);font-size:15px;display:flex;align-items:center;justify-content:center}
+.toast{position:fixed;left:50%;bottom:110px;transform:translate(-50%,20px);background:rgba(15,23,42,0.9);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);color:#fff;padding:14px 22px;border-radius:18px;font-size:14px;font-weight:600;z-index:300;opacity:0;pointer-events:none;transition:.3s;max-width:88vw;text-align:center;border:1px solid rgba(255,255,255,0.15);box-shadow:0 12px 40px rgba(0,0,0,0.3)}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast.ok{background:rgba(21,128,61,0.92)}
+.toast.err{background:rgba(185,28,28,0.92)}
+@media(min-width:900px){.toast{bottom:36px}}
+.chart{display:flex;align-items:flex-end;gap:8px;height:140px;padding-top:10px;overflow-x:auto}
+.chart .bar{flex:1;min-width:28px;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end}
+.chart .fill{width:100%;border-radius:10px 10px 4px 4px;min-height:6px;transition:.4s;background:linear-gradient(180deg,#7c6cff,#5b4bff);box-shadow:0 4px 12px rgba(91,75,255,0.3)}
+.chart .lab{font-size:10.5px;color:var(--muted);font-weight:700}
+.chart .val{font-size:9.5px;color:var(--muted);font-weight:700}
+.switch{position:relative;display:inline-block;width:52px;height:30px}
+.switch input{opacity:0;width:0;height:0}
+.slider{position:absolute;cursor:pointer;inset:0;background:rgba(203,213,225,0.7);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.6);border-radius:30px;transition:.3s}
+.slider:before{content:"";position:absolute;height:24px;width:24px;left:3px;bottom:2.5px;background:#fff;border-radius:50%;transition:.3s;box-shadow:0 2px 6px rgba(0,0,0,0.15)}
+.switch input:checked + .slider{background:linear-gradient(135deg,#5b4bff,#a55bff);border-color:transparent}
+.switch input:checked + .slider:before{transform:translateX(22px)}
+.file-input{padding:10px;border:1px dashed rgba(255,255,255,0.8);border-radius:14px;background:rgba(255,255,255,0.5);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);font-size:13px}
+.logo-preview{width:100px;height:100px;border-radius:26px;background:linear-gradient(135deg,#5b4bff,#a55bff);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:38px;margin:14px auto;overflow:hidden;box-shadow:0 12px 32px rgba(91,75,255,0.35), inset 0 1px 0 rgba(255,255,255,0.3);border:2px solid rgba(255,255,255,0.4)}
+.logo-preview img{width:100%;height:100%;object-fit:cover}
+.logo-upload-btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:13px 16px;border-radius:16px;background:rgba(255,255,255,0.6);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1.5px dashed rgba(255,255,255,0.8);color:var(--text);font-weight:700;font-size:14px;cursor:pointer;transition:.2s;width:100%}
+.logo-upload-btn input{display:none}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(91,75,255,0.3);border-radius:10px}
+</style>
+</head>
+<body>
+
+<div id="splash">
+  <div class="splash-logo" id="splashLogo">BP</div>
+  <div class="splash-name" id="splashName">BiasharaPro</div>
+  <div class="splash-sub">Simamia biashara yako kwa urahisi</div>
+  <div class="splash-loader"></div>
+</div>
+
+<div id="landing" class="hidden">
+  <div class="landing-wrap">
+    <div class="landing-nav">
+      <div class="landing-brand">
+        <div class="l-logo" id="landLogo">BP</div>
+        <b id="landName">BiasharaPro</b>
+      </div>
+      <div class="nav-cta">
+        <button class="ghost-btn" onclick="showAuth('login')">Ingia</button>
+        <button class="solid-btn" onclick="showAuth('register')">Jisajili</button>
+      </div>
+    </div>
+    <div class="hero">
+      <div class="badge-hero">✨ Mfumo wa kisasa wa biashara</div>
+      <h1>Simamia biashara yako <span class="grad">kwa urahisi</span></h1>
+      <p>Rekodi mauzo, fuatilia faida, simamia stock, na kagua utendaji wa wauzaji wako — vyote mahali pamoja.</p>
+      <div class="hero-cta">
+        <button class="p1" onclick="showAuth('register')">🚀 Anza Bure</button>
+        <button class="p2" onclick="showAuth('login')">Nina Akaunti</button>
+      </div>
+    </div>
+    <div class="features-grid">
+      <div class="feature"><div class="f-icon">📦</div><b>Simamia Bidhaa</b><p>Ongeza bidhaa, weka bei halisi na bei ya kuuza. Faida inajihesabu yenyewe.</p></div>
+      <div class="feature"><div class="f-icon">💰</div><b>Rekodi Mauzo</b><p>Kila mauzo yanapunguza stock na kuongeza faida kwenye ripoti zako.</p></div>
+      <div class="feature"><div class="f-icon">📈</div><b>Ripoti za Kina</b><p>Leo, Wiki, Mwezi, Mwaka. Chart za siku 7 na miezi 12.</p></div>
+      <div class="feature"><div class="f-icon">👥</div><b>Watumiaji Wengi</b><p>Mmiliki anaona kila kitu. Wauzaji wanarekodi mauzo tu.</p></div>
+      <div class="feature"><div class="f-icon">🧾</div><b>PDF Risiti</b><p>Toa risiti nzuri kwa mteja kwa mbofyo mmoja.</p></div>
+      <div class="feature"><div class="f-icon">💬</div><b>WhatsApp</b><p>Tuma risiti moja kwa moja kwenye WhatsApp ya mteja.</p></div>
+      <div class="feature"><div class="f-icon">📊</div><b>Export CSV</b><p>Pakua mauzo yako yote kwa Excel kwa mbofyo mmoja.</p></div>
+      <div class="feature"><div class="f-icon">☁️</div><b>Cloud Sync</b><p>Data inaonekana kwenye simu, tablet, na kompyuta zote.</p></div>
+      <div class="feature"><div class="f-icon">💾</div><b>Auto Backup</b><p>Backup ya kila siku inapakuliwa yenyewe.</p></div>
+    </div>
+    <div class="landing-footer">
+      <p style="margin-bottom:12px">
+        <a onclick="showTerms()">Masharti</a>
+        <a onclick="showPrivacy()">Faragha</a>
+      </p>
+      <p><span id="contactLine">© 2025 BiasharaPro. Haki zote zimehifadhiwa.</span></p>
+    </div>
+  </div>
+</div>
+
+<div class="auth hidden" id="authScreen">
+  <div class="auth-card">
+    <div class="auth-logo" id="authLogo">BP</div>
+    <h1 id="authTitle">BiasharaPro</h1>
+    <p class="sub">Simamia biashara yako kwa urahisi</p>
+    <div class="tabs">
+      <button id="tabLogin" class="on" type="button" onclick="switchAuth('login')">Ingia</button>
+      <button id="tabReg" type="button" onclick="switchAuth('register')">Jisajili</button>
+    </div>
+    <div id="formLogin">
+      <label>Jina la Mtumiaji</label>
+      <input id="liUser" placeholder="mfano: juma" autocomplete="username">
+      <label>Neno la Siri</label>
+      <input id="liPass" type="password" placeholder="••••••" autocomplete="current-password">
+      <button class="btn primary full" type="button" onclick="doLogin()">Ingia</button>
+    </div>
+    <div id="formReg" class="hidden">
+      <div class="tabs" style="margin-bottom:14px">
+        <button type="button" id="regOwner" class="on" onclick="switchRegRole('owner')">Mmiliki</button>
+        <button type="button" id="regSeller" onclick="switchRegRole('seller')">Muuzaji</button>
+      </div>
+      <label>Jina Lako Kamili</label>
+      <input id="rgName" placeholder="mfano: Juma Hassan">
+      <label>Jina la Mtumiaji (username)</label>
+      <input id="rgUser" placeholder="mfano: juma">
+      <label>Neno la Siri</label>
+      <input id="rgPass" type="password" placeholder="Herufi 4 au zaidi">
+      <label>Rudia Neno la Siri</label>
+      <input id="rgPass2" type="password" placeholder="••••••">
+      <div id="ownerFields">
+        <label>Jina la Biashara</label>
+        <input id="rgBiz" placeholder="mfano: Duka la Juma">
+      </div>
+      <div id="sellerFields" class="hidden">
+        <label>Business Code (kutoka kwa mmiliki)</label>
+        <input id="rgCode" placeholder="mfano: DKA7X9P2" style="text-transform:uppercase">
+        <div class="hint" style="margin-top:10px">Omba <b>Business Code</b> kwa mmiliki wako wa biashara.</div>
+      </div>
+      <button id="btnRegister" class="btn primary full" type="button" onclick="doRegister()">Tengeneza Akaunti</button>
+    </div>
+    <span class="back-link" onclick="showLanding()">← Rudi kwenye ukurasa wa mwanzo</span>
+    <div class="version">v7.0 · Liquid Glass</div>
+  </div>
+</div>
+
+<div class="app" id="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo" id="sbLogo">BP</div>
+      <div>
+        <div class="bname" id="sbBiz">Biashara</div>
+        <div class="brole" id="sbBrandName">BiasharaPro</div>
+      </div>
+    </div>
+    <nav class="nav">
+      <a class="nav-item" data-page="dashboard" onclick="go('dashboard')"><span>📊</span> Dashibodi</a>
+      <a class="nav-item" data-page="products"  onclick="go('products')"><span>📦</span> Bidhaa</a>
+      <a class="nav-item" data-page="sales"     onclick="go('sales')"><span>💰</span> Mauzo</a>
+      <a class="nav-item" data-page="reports"   onclick="go('reports')"><span>📈</span> Ripoti</a>
+      <a class="nav-item owner-only" data-page="users" onclick="go('users')"><span>👥</span> Watumiaji</a>
+      <a class="nav-item owner-only" data-page="audit" onclick="go('audit')"><span>📜</span> Kumbukumbu</a>
+      <a class="nav-item owner-only" data-page="branding" onclick="go('branding')"><span>🎨</span> Branding</a>
+      <a class="nav-item" data-page="settings"  onclick="go('settings')"><span>⚙️</span> Mipangilio</a>
+    </nav>
+    <div class="side-foot">
+      <div class="uinfo">
+        <div class="uname" id="sbUser">—</div>
+        <div class="urole" id="sbRole">—</div>
+      </div>
+      <button class="btn ghost sm" style="width:100%" onclick="logout()">🚪 Toka</button>
+    </div>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="tb-logo" id="tbLogo">BP</div>
+      <div style="min-width:0;flex:1">
+        <b id="tbBiz">Biashara</b>
+        <small id="tbUser">—</small>
+      </div>
+      <button class="icon-btn" onclick="logout()" title="Toka">🚪</button>
+    </div>
+    <div class="page" id="page"></div>
+  </div>
+  <nav class="bnav">
+    <a data-page="dashboard" onclick="go('dashboard')"><span>📊</span>Dashibodi</a>
+    <a data-page="products"  onclick="go('products')"><span>📦</span>Bidhaa</a>
+    <a data-page="sales"     onclick="go('sales')"><span>💰</span>Mauzo</a>
+    <a data-page="reports"   onclick="go('reports')"><span>📈</span>Ripoti</a>
+    <a class="owner-only" data-page="users" onclick="go('users')"><span>👥</span>Watumiaji</a>
+    <a data-page="settings"  onclick="go('settings')"><span>⚙️</span>Zaidi</a>
+  </nav>
+</div>
+
+<div class="modal hidden" id="modal"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+   BIASHARAPRO v7.0 — Liquid Glass Edition
+   ========================================================= */
+
+function log(msg){ console.log(msg); }
+window.addEventListener('error', e => console.error('❌', e.message));
+window.addEventListener('unhandledrejection', e => console.error('❌', e.reason));
+
+const SUPABASE_URL = 'https://kdlgrvobhnjzpterenqk.supabase.co';
+const SUPABASE_KEY = 'sb_publishable__9QiAcEmqwl8jgWb7F8kAA_NvF1tiNq';
+
+let db = null;
+try { const { createClient } = supabase; db = createClient(SUPABASE_URL, SUPABASE_KEY); }
+catch(e){ console.error('Supabase init:', e); }
+
+const { jsPDF } = window.jspdf || {};
+const SESSION_KEY = 'bp_session_v4';
+const BACKUP_KEY = 'bp_last_backup';
+const BRAND_KEY = 'bp_brand';
+let state = { user:null, profile:null, page:'dashboard', period:'all', search:'', regRole:'owner', reportView:'week' };
+
+function getBrand(){ try { return JSON.parse(localStorage.getItem(BRAND_KEY)) || {}; } catch(e){ return {}; } }
+function saveBrand(b){ try { localStorage.setItem(BRAND_KEY, JSON.stringify(b)); } catch(e){ toast('Kifaa kimejaa','err'); return; } applyBrand(); }
+function logoHTML(b){
+  b = b || getBrand();
+  if(b.logoImage) return '<img src="' + b.logoImage + '" alt="logo">';
+  return esc(b.logo || 'BP');
+}
+function applyBrand(){
+  const b = getBrand();
+  const name = b.name || 'BiasharaPro';
+  const tagline = b.tagline || 'Simamia biashara yako kwa urahisi';
+  const phone = b.phone || '', email = b.email || '', whatsapp = b.whatsapp || '';
+  const lg = logoHTML(b);
+  const sl = document.getElementById('splashLogo'); if(sl) sl.innerHTML = lg;
+  const sn = document.getElementById('splashName'); if(sn) sn.textContent = name;
+  const ll = document.getElementById('landLogo'); if(ll) ll.innerHTML = lg;
+  const ln = document.getElementById('landName'); if(ln) ln.textContent = name;
+  const cl = document.getElementById('contactLine');
+  if(cl){
+    const parts = [];
+    if(phone) parts.push('📞 ' + phone);
+    if(email) parts.push('✉️ ' + email);
+    if(whatsapp) parts.push('💬 ' + whatsapp);
+    cl.innerHTML = parts.length ? parts.join(' · ') + '<br>© 2025 ' + name + '. Haki zote zimehifadhiwa.' : '© 2025 ' + name + '. Haki zote zimehifadhiwa.';
+  }
+  const al = document.getElementById('authLogo'); if(al) al.innerHTML = lg;
+  const at = document.getElementById('authTitle'); if(at) at.textContent = name;
+  const asub = document.querySelector('.auth .sub'); if(asub) asub.textContent = tagline;
+  const sblogo = document.getElementById('sbLogo'); if(sblogo) sblogo.innerHTML = lg;
+  const tblogo = document.getElementById('tbLogo'); if(tblogo) tblogo.innerHTML = lg;
+  const sbbrand = document.getElementById('sbBrandName'); if(sbbrand) sbbrand.textContent = name;
+  document.title = name;
+  try {
+    let url;
+    if(b.logoImage){ url = b.logoImage; }
+    else {
+      const logoTxt = (b.logo || 'BP').slice(0,3).replace(/[<>&"']/g,'');
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5b4bff"/><stop offset="1" stop-color="#a55bff"/></linearGradient></defs><rect width="64" height="64" rx="16" fill="url(#g)"/><text x="32" y="44" font-size="30" font-weight="900" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">${logoTxt}</text></svg>`;
+      url = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg)));
+    }
+    let link = document.querySelector("link[rel*='icon']");
+    if(!link){ link = document.createElement('link'); link.rel = 'icon'; document.head.appendChild(link); }
+    link.href = url;
+  } catch(e){ console.warn('favicon:', e); }
+}
+
+function showTerms(){
+  showModal('Masharti ya Matumizi', `
+    <p style="margin-bottom:12px"><b>1. Kukubali Masharti</b><br>Kwa kutumia mfumo huu, unakubali masharti yote yaliyoorodheshwa hapa.</p>
+    <p style="margin-bottom:12px"><b>2. Akaunti Yako</b><br>Wewe ni mhusika wa usalama wa akaunti yako. Usishiriki password yako.</p>
+    <p style="margin-bottom:12px"><b>3. Data Yako</b><br>Data yote ya biashara yako ni mali yako.</p>
+    <p style="margin-bottom:12px"><b>4. Matumizi Yaliyokatazwa</b><br>Hairuhusiwi kutumia mfumo kwa shughuli za kinyume cha sheria.</p>
+    <p><b>5. Kikomo cha Dhima</b><br>Mfumo unatolewa "kama ulivyo".</p>
+  `);
+}
+function showPrivacy(){
+  showModal('Sera ya Faragha', `
+    <p style="margin-bottom:12px"><b>Data Tunayokusanya</b></p>
+    <ul style="padding-left:20px;margin-bottom:12px"><li>Jina lako na username</li><li>Taarifa za biashara yako</li></ul>
+    <p style="margin-bottom:12px"><b>Usalama</b><br>Data inahifadhiwa Supabase (cloud). Password inahifadhiwa kwa SHA-256.</p>
+    <p><b>Haki Zako</b><br>Una haki ya kuomba data yako, kuifuta, au kuibadilisha.</p>
+  `);
+}
+
+function esc(s){ return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function money(n){ return 'TSh ' + Number(n||0).toLocaleString('en-US',{maximumFractionDigits:0}); }
+function num(n){ return Number(n||0).toLocaleString('en-US',{maximumFractionDigits:0}); }
+function sum(arr, key){ return arr.reduce((a,b)=> a + (Number(key? b[key] : b)||0), 0); }
+function dstr(ts){ return new Date(ts).toLocaleDateString('sw-TZ',{day:'2-digit',month:'short',year:'numeric'}); }
+function dtstr(ts){ return new Date(ts).toLocaleString('sw-TZ',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}); }
+function genCode(){ const c='ABCDEFGHJKMNPQRSTUVWXYZ23456789'; let s=''; for(let i=0;i<8;i++) s+=c[Math.floor(Math.random()*c.length)]; return s; }
+function hashPass(p){ try { return sha256(p); } catch(e){ return 'ERR'+p; } }
+
+let toastTimer;
+function toast(msg, type){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + (type||'');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=> t.className = 'toast', 3200);
+}
+
+function saveSession(userId, biasharaId){ localStorage.setItem(SESSION_KEY, JSON.stringify({ userId, biasharaId, ts: Date.now() })); }
+function clearSession(){ localStorage.removeItem(SESSION_KEY); }
+function readSession(){ try{ return JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); }catch(e){ return null; } }
+
+function download(filename, content, mime){
+  const blob = new Blob([content], {type: mime || 'application/octet-stream'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+}
+
+async function logAction(kitendo, maelezo){
+  try {
+    if(!state.profile) return;
+    await db.from('kumbukumbu').insert({
+      biashara_id: state.profile.biashara_id, mtumiaji_id: state.profile.id,
+      mtumiaji_jina: state.profile.jina_kamili, kitendo, maelezo: maelezo || ''
+    });
+  } catch(e){ console.error('logAction:', e); }
+}
+
+function showLanding(){
+  document.getElementById('landing').classList.remove('hidden');
+  document.getElementById('authScreen').classList.add('hidden');
+  document.getElementById('app').classList.remove('on');
+  window.scrollTo(0,0);
+}
+function showAuth(mode){
+  document.getElementById('landing').classList.add('hidden');
+  document.getElementById('authScreen').classList.remove('hidden');
+  document.getElementById('app').classList.remove('on');
+  if(mode) switchAuth(mode);
+  window.scrollTo(0,0);
+}
+
+function switchAuth(which){
+  const isLogin = which === 'login';
+  document.getElementById('tabLogin').classList.toggle('on', isLogin);
+  document.getElementById('tabReg').classList.toggle('on', !isLogin);
+  document.getElementById('formLogin').classList.toggle('hidden', !isLogin);
+  document.getElementById('formReg').classList.toggle('hidden', isLogin);
+}
+function switchRegRole(role){
+  state.regRole = role;
+  document.getElementById('regOwner').classList.toggle('on', role === 'owner');
+  document.getElementById('regSeller').classList.toggle('on', role === 'seller');
+  document.getElementById('ownerFields').classList.toggle('hidden', role !== 'owner');
+  document.getElementById('sellerFields').classList.toggle('hidden', role !== 'seller');
+}
+
+async function doLogin(){
+  const user = document.getElementById('liUser').value.trim().toLowerCase();
+  const pass = document.getElementById('liPass').value;
+  if(!user || !pass) return toast('Jaza sehemu zote', 'err');
+  try {
+    const { data: list, error } = await db.from('watumiaji').select('*').eq('username', user).limit(1);
+    if(error) return toast('Hitilafu: ' + error.message, 'err');
+    if(!list || !list.length) return toast('Username haipatikani', 'err');
+    const u = list[0];
+    if(u.password_hash !== hashPass(pass)) return toast('Neno la siri si sahihi', 'err');
+    if(!u.active) return toast('Akaunti imezimwa', 'err');
+    saveSession(u.id, u.biashara_id);
+    await loadProfile(u.id);
+  } catch(e){ toast('Hitilafu: ' + e.message, 'err'); }
+}
+
+async function loadProfile(uid){
+  try {
+    const { data: profile, error } = await db.from('watumiaji').select('*, biashara(*)').eq('id', uid).single();
+    if(error || !profile){ clearSession(); return toast('Profaili haipatikani', 'err'); }
+    if(!profile.active){ clearSession(); return toast('Akaunti imezimwa', 'err'); }
+    state.user = { id: uid };
+    state.profile = profile;
+    startSession();
+    logAction('login', 'Ameingia kwenye mfumo');
+  } catch(e){ toast('Hitilafu: ' + e.message, 'err'); }
+}
+
+async function doRegister(){
+  try {
+    if(!db) return toast('Mfumo haujaanza', 'err');
+    const name  = document.getElementById('rgName').value.trim();
+    const user  = document.getElementById('rgUser').value.trim().toLowerCase();
+    const pass  = document.getElementById('rgPass').value;
+    const pass2 = document.getElementById('rgPass2').value;
+    if(!name || !user || !pass) return toast('Jaza sehemu zote', 'err');
+    if(user.length < 3)  return toast('Username iwe herufi 3+', 'err');
+    if(pass.length < 4)  return toast('Password iwe herufi 4+', 'err');
+    if(pass !== pass2)   return toast('Maneno ya siri hayafanani', 'err');
+
+    const { data: existing } = await db.from('watumiaji').select('id').eq('username', user).limit(1);
+    if(existing && existing.length) return toast('Username imechukuliwa', 'err');
+
+    const role = state.regRole;
+    const hash = hashPass(pass);
+
+    if(role === 'owner'){
+      const biz = document.getElementById('rgBiz').value.trim();
+      if(!biz) return toast('Weka jina la biashara', 'err');
+      const code = genCode();
+      const { data: bizData, error: bizErr } = await db.from('biashara').insert({ jina: biz, code }).select().single();
+      if(bizErr) return toast('Hitilafu: ' + bizErr.message, 'err');
+
+      const { data: owner, error: oErr } = await db.from('watumiaji').insert({
+        biashara_id: bizData.id, jina_kamili: name, username: user,
+        password_hash: hash, role: 'mmiliki', active: true
+      }).select().single();
+      if(oErr) return toast('Hitilafu: ' + oErr.message, 'err');
+
+      saveSession(owner.id, bizData.id);
+      showWelcome(code, owner.id, name, biz);
+      return;
+    } else {
+      const code = document.getElementById('rgCode').value.trim().toUpperCase();
+      if(!code) return toast('Weka business code', 'err');
+      const { data: bizList } = await db.from('biashara').select('id, jina').eq('code', code).limit(1);
+      if(!bizList || !bizList.length) return toast('Business Code si sahihi', 'err');
+      const biz = bizList[0];
+
+      const { data: seller, error: sErr } = await db.from('watumiaji').insert({
+        biashara_id: biz.id, jina_kamili: name, username: user,
+        password_hash: hash, role: 'muuzaji', active: true
+      }).select().single();
+      if(sErr) return toast('Hitilafu: ' + sErr.message, 'err');
+
+      saveSession(seller.id, biz.id);
+      showWelcome(null, seller.id, name, biz.jina, true);
+    }
+  } catch(err){ toast('Hitilafu: ' + (err.message || err), 'err'); }
+}
+
+function showWelcome(code, userId, name, bizName, isSeller){
+  const firstName = name.split(' ')[0];
+  showModal(`🎉 Karibu, ${esc(firstName)}!`, `
+    <div style="text-align:center;margin-bottom:16px">
+      <div style="width:80px;height:80px;border-radius:26px;background:linear-gradient(135deg,#5b4bff,#a55bff);color:#fff;display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 12px;box-shadow:0 12px 32px rgba(91,75,255,0.35)">🎉</div>
+      <p style="font-size:15px;line-height:1.7">${isSeller ? 'Umejiunga na biashara ya' : 'Akaunti yako ya biashara'} <b>${esc(bizName)}</b> imefanikiwa!</p>
+    </div>
+    ${code ? `
+      <p style="font-size:13px;color:var(--muted);text-align:center;margin-bottom:8px">Hii ni <b>Business Code</b> yako:</p>
+      <div class="code-box"><div style="font-size:12px;opacity:.85;margin-bottom:4px">BUSINESS CODE</div><div class="code">${code}</div></div>
+      <button class="btn ghost full" onclick="copyCode('${code}')">📋 Nakili Code</button>
+    ` : ''}
+    <div style="background:rgba(255,255,255,0.5);backdrop-filter:blur(20px);border-radius:16px;padding:14px;margin-top:14px;border:1px solid rgba(255,255,255,0.6)">
+      <div style="font-weight:700;font-size:14px;margin-bottom:10px">Hatua za Mwanzo:</div>
+      <div style="font-size:13.5px;line-height:2;color:var(--muted)">
+        <div>1️⃣ Ongeza bidhaa kwenye 📦 <b>Bidhaa</b></div>
+        <div>2️⃣ Rekodi mauzo kwenye 💰 <b>Mauzo</b></div>
+        <div>3️⃣ Angalia faida kwenye 📈 <b>Ripoti</b></div>
+        <div>4️⃣ Badilisha logo kwenye 🎨 <b>Branding</b></div>
+      </div>
+    </div>
+    <button class="btn primary full" onclick="closeModal();loadProfile('${userId}')">Anza Kutumia →</button>
+  `);
+}
+
+function copyCode(code){ navigator.clipboard?.writeText(code).then(()=> toast('Code imenakiliwa!', 'ok'), ()=> toast('Andika: ' + code, 'err')); }
+
+function startSession(){
+  document.getElementById('landing').classList.add('hidden');
+  document.getElementById('authScreen').classList.add('hidden');
+  document.getElementById('app').classList.add('on');
+  state.page = 'dashboard';
+  render();
+  checkAutoBackup();
+}
+
+function logout(){
+  if(!confirm('Una uhakika unataka kutoka?')) return;
+  logAction('logout', 'Ametoka kwenye mfumo');
+  clearSession();
+  state.user = null; state.profile = null;
+  document.getElementById('app').classList.remove('on');
+  showLanding();
+  document.getElementById('liUser').value = '';
+  document.getElementById('liPass').value = '';
+}
+
+async function boot(){
+  applyBrand();
+  setTimeout(() => {
+    const splash = document.getElementById('splash');
+    if(splash) splash.classList.add('hide');
+    setTimeout(() => splash?.remove(), 600);
+  }, 1400);
+  const s = readSession();
+  if(s && s.userId){ await loadProfile(s.userId); }
+  else { showLanding(); }
+}
+boot();
+
+function isOwner(){ return state.profile && state.profile.role === 'mmiliki'; }
+function bizId(){ return state.profile.biashara_id; }
+
+async function getProducts(){ const { data } = await db.from('bidhaa').select('*').eq('biashara_id', bizId()).order('jina'); return data || []; }
+async function getSales(){ const { data } = await db.from('mauzo').select('*').eq('biashara_id', bizId()).order('tarehe', { ascending:false }); return data || []; }
+async function getUsers(){ const { data } = await db.from('watumiaji').select('*').eq('biashara_id', bizId()); return data || []; }
+async function getAudit(){ const { data } = await db.from('kumbukumbu').select('*').eq('biashara_id', bizId()).order('tarehe', { ascending:false }).limit(200); return data || []; }
+
+function go(page){
+  if((page === 'users' || page === 'audit' || page === 'branding') && !isOwner()){ toast('Ni kwa mmiliki tu', 'err'); return; }
+  state.page = page; state.search = '';
+  render(); window.scrollTo(0,0);
+}
+
+async function render(){
+  if(!state.profile) return;
+  applyBrand();
+  document.getElementById('sbBiz').textContent = state.profile.biashara?.jina || 'Biashara';
+  document.getElementById('tbBiz').textContent = state.profile.biashara?.jina || 'Biashara';
+  document.getElementById('sbUser').textContent = state.profile.jina_kamili;
+  document.getElementById('tbUser').textContent = state.profile.jina_kamili + ' · ' + (isOwner()?'Mmiliki':'Muuzaji');
+  document.getElementById('sbRole').textContent = isOwner() ? 'Mmiliki wa Biashara' : 'Muuzaji';
+  document.querySelectorAll('.owner-only').forEach(el => { el.style.display = isOwner() ? '' : 'none'; });
+  document.querySelectorAll('[data-page]').forEach(el => { el.classList.toggle('active', el.dataset.page === state.page); });
+  const pg = document.getElementById('page');
+  pg.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">Inapakia...</div>';
+  const pages = { dashboard: pgDashboard, products: pgProducts, sales: pgSales, users: pgUsers, reports: pgReports, audit: pgAudit, branding: pgBranding, settings: pgSettings };
+  const fn = pages[state.page] || pgDashboard;
+  pg.innerHTML = await fn();
+}
+
+async function pgDashboard(){
+  const sales = await getSales();
+  const prods = await getProducts();
+  const t0 = new Date(); t0.setHours(0,0,0,0);
+  const todaySales = sales.filter(s => new Date(s.tarehe) >= t0);
+  const lowStock = prods.filter(p => p.stock <= 5);
+  const last30 = sales.filter(s => Date.now() - new Date(s.tarehe).getTime() < 30*86400000);
+  const daysSet = new Set(last30.map(s => { const d = new Date(s.tarehe); return d.getFullYear()+'-'+d.getMonth()+'-'+d.getDate(); }));
+  const daysWithSales = daysSet.size || 1;
+  const avgDaily = sum(last30, 'jumla') / daysWithSales;
+  const avgProfit = sum(last30, 'faida') / daysWithSales;
+  const map = {};
+  sales.forEach(s => { if(!map[s.bidhaa_jina]) map[s.bidhaa_jina] = { qty:0, total:0, profit:0 }; map[s.bidhaa_jina].qty += s.idadi; map[s.bidhaa_jina].total += s.jumla; map[s.bidhaa_jina].profit += s.faida; });
+  const top = Object.entries(map).sort((a,b)=> b[1].profit - a[1].profit).slice(0,3);
+  const recent = sales.slice(0,6);
+  return `
+    <h2 class="pt">Habari, ${esc(state.profile.jina_kamili.split(' ')[0])} 👋</h2>
+    <p class="ps">Muhtasari wa biashara yako leo</p>
+    <div class="stats">
+      <div class="stat p"><div class="lb">Mauzo ya Leo</div><div class="vl">${money(sum(todaySales,'jumla'))}</div></div>
+      <div class="stat g"><div class="lb">Faida ya Leo</div><div class="vl">${money(sum(todaySales,'faida'))}</div></div>
+      <div class="stat"><div class="lb">Bidhaa</div><div class="vl">${prods.length}</div></div>
+      <div class="stat"><div class="lb">Stock Ndogo</div><div class="vl" style="color:${lowStock.length?'var(--err)':'var(--ok)'}">${lowStock.length}</div></div>
+    </div>
+    <div class="stats">
+      <div class="stat o"><div class="lb">Wastani Mauzo</div><div class="vl">${money(avgDaily)}</div></div>
+      <div class="stat o"><div class="lb">Wastani Faida</div><div class="vl">${money(avgProfit)}</div></div>
+      <div class="stat"><div class="lb">Mauzo Jumla</div><div class="vl">${money(sum(sales,'jumla'))}</div></div>
+      <div class="stat"><div class="lb">Faida Jumla</div><div class="vl" style="color:var(--ok)">${money(sum(sales,'faida'))}</div></div>
+    </div>
+    <p style="font-size:11.5px;color:var(--muted);text-align:center;margin:-10px 0 16px">Wastani kutokana na siku ${daysWithSales} (siku 30 zilizopita)</p>
+    ${lowStock.length ? `<div class="card" style="border-color:rgba(245,158,11,0.5);background:rgba(255,251,235,0.6)"><h3>⚠️ Bidhaa zinazoisha stock</h3>${lowStock.slice(0,6).map(p => `<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(245,158,11,0.3);font-size:14px"><span><b>${esc(p.jina)}</b></span><span class="badge ${p.stock===0?'err':'warn'}">${p.stock} ${esc(p.kipimo||'')}</span></div>`).join('')}</div>` : ''}
+    ${top.length ? `<div class="card"><h3>🏆 Bidhaa zenye faida kubwa</h3>${top.map(([name,d],i) => `<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;${i<top.length-1?'border-bottom:1px solid rgba(255,255,255,0.5)':''}"><div><div style="font-weight:700;font-size:14px">${esc(name)}</div><div style="font-size:12px;color:var(--muted)">${num(d.qty)} zimeuzwa · ${money(d.total)}</div></div><div class="pos">${money(d.profit)}</div></div>`).join('')}</div>` : ''}
+    <div class="card"><h3>Mauzo ya Karibuni <button class="btn ghost xs" onclick="go('sales')">Zote →</button></h3>${recent.length ? `<div class="tw"><table><thead><tr><th>Muda</th><th>Bidhaa</th><th class="num">Idadi</th><th class="num">Jumla</th><th class="num">Faida</th></tr></thead><tbody>${recent.map(s => `<tr><td style="color:var(--muted);font-size:12.5px">${dtstr(s.tarehe)}</td><td><b>${esc(s.bidhaa_jina)}</b><br><small style="color:var(--muted)">${esc(s.muuzaji_jina||'—')}</small></td><td class="num">${num(s.idadi)}</td><td class="num">${money(s.jumla)}</td><td class="num pos">${money(s.faida)}</td></tr>`).join('')}</tbody></table></div>` : '<div class="empty"><div class="e">🧾</div><div>Hakuna mauzo bado</div></div>'}</div>
+    <button class="btn primary full" onclick="saleModal()">＋ Rekodi Mauzo Mapya</button>
+  `;
+}
+
+async function pgProducts(){
+  let list = await getProducts();
+  const q = state.search.toLowerCase();
+  if(q) list = list.filter(p => (p.jina+' '+(p.aina||'')).toLowerCase().includes(q));
+  const totalStockValue = sum(list, p => p.stock * p.bei_halisi);
+  const potentialProfit = sum(list, p => p.stock * (p.bei_kutoka - p.bei_halisi));
+  return `
+    <div class="head">
+      <div><h2 class="pt">Bidhaa</h2><p class="ps" style="margin:0">${list.length} bidhaa</p></div>
+      ${isOwner() ? `<div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn ghost sm" onclick="bulkImportModal()">📥 CSV</button><button class="btn primary sm" onclick="productModal()">＋ Ongeza</button></div>` : ''}
+    </div>
+    <div class="stats" style="grid-template-columns:repeat(2,1fr)"><div class="stat"><div class="lb">Thamani ya Stock</div><div class="vl">${money(totalStockValue)}</div></div><div class="stat"><div class="lb">Faida Inayotarajiwa</div><div class="vl" style="color:var(--ok)">${money(potentialProfit)}</div></div></div>
+    <div class="card"><input placeholder="🔍 Tafuta bidhaa..." value="${esc(state.search)}" oninput="state.search=this.value;render().then(()=>{const i=document.querySelector('.card input');if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length)}})"></div>
+    <div class="card">${list.length ? `<div class="tw"><table><thead><tr><th>Bidhaa</th><th class="num">Bei Halisi</th><th class="num">Bei Kuuza</th><th class="num">Faida</th><th class="num">Stock</th>${isOwner()?'<th></th>':''}</tr></thead><tbody>${list.map(p => { const fp = p.bei_kutoka - p.bei_halisi; const margin = p.bei_kutoka > 0 ? (fp/p.bei_kutoka*100) : 0; return `<tr><td><b>${esc(p.jina)}</b><br><small style="color:var(--muted)">${esc(p.aina||'Nyingine')}</small></td><td class="num">${money(p.bei_halisi)}</td><td class="num">${money(p.bei_kutoka)}</td><td class="num ${fp>=0?'pos':'neg'}">${money(fp)}<br><small style="font-weight:400;color:var(--muted)">${margin.toFixed(1)}%</small></td><td class="num"><span class="badge ${p.stock===0?'err':p.stock<=5?'warn':'ok'}">${num(p.stock)}</span><br><small style="color:var(--muted)">${esc(p.kipimo||'kipande')}</small></td>${isOwner() ? `<td style="text-align:right"><button class="btn ghost xs" onclick="productModal('${p.id}')">✏️</button> <button class="btn danger xs" onclick="delProduct('${p.id}')">🗑️</button></td>` : ''}</tr>`; }).join('')}</tbody></table></div>` : `<div class="empty"><div class="e">📦</div><div>${q?'Hakuna bidhaa':'Hakuna bidhaa bado'}</div>${isOwner()?`<button class="btn primary" style="margin-top:14px" onclick="productModal()">＋ Ongeza Bidhaa</button>`:''}</div>`}</div>
+  `;
+}
+
+async function productModal(id){
+  let p = null;
+  if(id){ const list = await getProducts(); p = list.find(x => x.id === id); }
+  showModal(p?'Hariri Bidhaa':'Ongeza Bidhaa Mpya', `<form onsubmit="saveProduct(event, '${id||''}')"><label>Jina la Bidhaa *</label><input id="pName" value="${p?esc(p.jina):''}" placeholder="mfano: Soda ya Coca" required><label>Aina / Kundi</label><input id="pCat" value="${p?esc(p.aina||''):''}" placeholder="mfano: Vinywaji"><label>Bei Halisi (cost) *</label><input id="pCost" type="number" step="0.01" min="0" value="${p?p.bei_halisi:''}" placeholder="0" required oninput="calcMargin()"><label>Bei ya Kuuza *</label><input id="pPrice" type="number" step="0.01" min="0" value="${p?p.bei_kutoka:''}" placeholder="0" required oninput="calcMargin()"><label>Idadi ya Stock *</label><input id="pStock" type="number" min="0" value="${p?p.stock:0}" required><label>Kipimo</label><input id="pUnit" value="${p?esc(p.kipimo||'kipande'):'kipande'}" placeholder="kipande / lita / kilo"><div class="hint" id="marginInfo">Weka bei halisi na bei ya kuuza ili kuona faida.</div><button class="btn primary full" type="submit">💾 Hifadhi Bidhaa</button></form>`);
+  calcMargin();
+}
+function calcMargin(){ const c = +document.getElementById('pCost').value || 0; const s = +document.getElementById('pPrice').value || 0; const box = document.getElementById('marginInfo'); if(!box) return; const fp = s - c; const m = s > 0 ? (fp/s*100) : 0; box.innerHTML = `Faida: <b class="${fp>=0?'pos':'neg'}">${money(fp)}</b> · Margin: <b>${m.toFixed(1)}%</b>${fp<0?'<br><span style="color:var(--err)">⚠️ Utapata hasara!</span>':''}`; }
+
+async function saveProduct(e, id){
+  e.preventDefault();
+  const data = { jina: document.getElementById('pName').value.trim(), aina: document.getElementById('pCat').value.trim() || 'Nyingine', bei_halisi: +document.getElementById('pCost').value || 0, bei_kutoka: +document.getElementById('pPrice').value || 0, stock: +document.getElementById('pStock').value || 0, kipimo: document.getElementById('pUnit').value.trim() || 'kipande' };
+  if(!data.jina) return toast('Weka jina', 'err');
+  if(data.bei_kutoka < data.bei_halisi && !confirm('Bei ndogo kuliko cost. Endelea?')) return;
+  if(id){
+    const { error } = await db.from('bidhaa').update(data).eq('id', id);
+    if(error) return toast(error.message, 'err');
+    toast('Bidhaa imehaririwa', 'ok');
+    logAction('hariri_bidhaa', data.jina);
+  } else {
+    data.biashara_id = bizId();
+    const { error } = await db.from('bidhaa').insert(data);
+    if(error) return toast(error.message, 'err');
+    toast('Bidhaa imeongezwa', 'ok');
+    logAction('ongeza_bidhaa', data.jina);
+  }
+  closeModal(); render();
+}
+
+async function delProduct(id){
+  if(!confirm('Futa bidhaa hii?')) return;
+  const list = await getProducts();
+  const p = list.find(x => x.id === id);
+  const { error } = await db.from('bidhaa').delete().eq('id', id);
+  if(error) return toast(error.message, 'err');
+  toast('Bidhaa imefutwa', 'ok');
+  logAction('futa_bidhaa', p?.jina || id);
+  render();
+}
+
+function bulkImportModal(){
+  showModal('Ongeza Bidhaa kwa Mkupuo', `
+    <p style="font-size:13.5px;color:var(--muted);line-height:1.7;margin-bottom:14px">Pakua template, jaza kwenye Excel/Google Sheets, kisha pakia hapa.</p>
+    <button class="btn ghost full" style="margin-top:0" onclick="downloadTemplate()">📄 Pakua Template CSV</button>
+    <label>Pakia Faili la CSV</label>
+    <input type="file" id="csvFile" accept=".csv,text/csv" class="file-input">
+    <div class="hint" style="margin-top:14px"><b>Vigezo:</b> jina, aina, bei_halisi, bei_kutoka, stock, kipimo</div>
+    <button class="btn primary full" onclick="processBulkCSV()">📥 Pakia Bidhaa</button>
+  `);
+}
+function downloadTemplate(){
+  const csv = 'jina,aina,bei_halisi,bei_kutoka,stock,kipimo\nSoda ya Coca,Vinywaji,800,1200,50,kipande\nMkate wa 400,Mkate,900,1200,30,kipande\n';
+  download('template-bidhaa.csv', csv, 'text/csv;charset=utf-8');
+  toast('Template imepakuliwa', 'ok');
+}
+async function processBulkCSV(){
+  const file = document.getElementById('csvFile').files[0];
+  if(!file) return toast('Chagua faili kwanza', 'err');
+  const text = await file.text();
+  const lines = text.split(/\r?\n/).filter(l => l.trim());
+  if(lines.length < 2) return toast('Faili tupu', 'err');
+  const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+  const required = ['jina','bei_halisi','bei_kutoka','stock'];
+  for(const r of required){ if(!headers.includes(r)) return toast('Kigezo kinakosekana: ' + r, 'err'); }
+  const products = [];
+  for(let i = 1; i < lines.length; i++){
+    const cells = lines[i].split(',').map(c => c.trim());
+    const o = {};
+    headers.forEach((h, idx) => o[h] = cells[idx] || '');
+    if(!o.jina) continue;
+    products.push({ biashara_id: bizId(), jina: o.jina, aina: o.aina || 'Nyingine', bei_halisi: +o.bei_halisi || 0, bei_kutoka: +o.bei_kutoka || 0, stock: +o.stock || 0, kipimo: o.kipimo || 'kipande' });
+  }
+  if(!products.length) return toast('Hakuna bidhaa halali', 'err');
+  const { error } = await db.from('bidhaa').insert(products);
+  if(error) return toast('Hitilafu: ' + error.message, 'err');
+  toast(`Bidhaa ${products.length} zimeongezwa! 🎉`, 'ok');
+  logAction('bulk_bidhaa', `Bidhaa ${products.length} zimeongezwa kwa CSV`);
+  closeModal(); render();
+}
+
+async function pgSales(){
+  const sales = await getSales();
+  const t0 = new Date(); t0.setHours(0,0,0,0);
+  const today = sales.filter(s => new Date(s.tarehe) >= t0);
+  return `
+    <div class="head">
+      <div><h2 class="pt">Mauzo</h2><p class="ps" style="margin:0">${sales.length} mauzo</p></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn ghost sm" onclick="exportSalesCSV()">📊 CSV</button>
+        <button class="btn primary sm" onclick="saleModal()">＋ Rekodi</button>
+      </div>
+    </div>
+    <div class="stats"><div class="stat p"><div class="lb">Mauzo ya Leo</div><div class="vl">${money(sum(today,'jumla'))}</div></div><div class="stat g"><div class="lb">Faida ya Leo</div><div class="vl">${money(sum(today,'faida'))}</div></div><div class="stat"><div class="lb">Mauzo Jumla</div><div class="vl">${money(sum(sales,'jumla'))}</div></div><div class="stat"><div class="lb">Faida Jumla</div><div class="vl" style="color:var(--ok)">${money(sum(sales,'faida'))}</div></div></div>
+    <div class="card"><h3>Rekodi zote za mauzo</h3>${sales.length ? `<div class="tw"><table><thead><tr><th>Tarehe</th><th>Bidhaa</th><th class="num">Idadi</th><th class="num">Jumla</th><th class="num">Faida</th><th>Muuzaji</th><th></th></tr></thead><tbody>${sales.slice(0,200).map(s => `<tr><td style="font-size:12.5px;color:var(--muted)">${dtstr(s.tarehe)}</td><td><b>${esc(s.bidhaa_jina)}</b></td><td class="num">${num(s.idadi)}</td><td class="num"><b>${money(s.jumla)}</b></td><td class="num ${s.faida>=0?'pos':'neg'}">${money(s.faida)}</td><td style="font-size:12.5px">${esc(s.muuzaji_jina||'—')}</td><td style="white-space:nowrap"><button class="btn ghost xs" onclick="generateReceipt('${s.id}')">🧾</button> <button class="btn green xs" onclick="shareWhatsApp('${s.id}')">💬</button></td></tr>`).join('')}</tbody></table></div>` : '<div class="empty"><div class="e">💰</div><div>Hakuna mauzo bado</div></div>'}</div>
+  `;
+}
+
+async function exportSalesCSV(){
+  const sales = await getSales();
+  if(!sales.length) return toast('Hakuna mauzo', 'err');
+  const headers = ['Tarehe','Bidhaa','Idadi','Bei','Jumla','Faida','Muuzaji'];
+  const rows = sales.map(s => [new Date(s.tarehe).toLocaleString('sw-TZ'), s.bidhaa_jina, s.idadi, s.bei_kutoka, s.jumla, s.faida, s.muuzaji_jina || '—']);
+  const esc2 = v => `"${String(v ?? '').replace(/"/g,'""')}"`;
+  const csv = [headers.map(esc2).join(','), ...rows.map(r => r.map(esc2).join(','))].join('\n');
+  download(`mauzo-${Date.now()}.csv`, csv, 'text/csv;charset=utf-8');
+  toast('CSV imepakuliwa', 'ok');
+  logAction('export_csv', `Mauzo ${sales.length} yamepakuliwa`);
+}
+
+async function shareWhatsApp(saleId){
+  const sales = await getSales();
+  const s = sales.find(x => x.id === saleId);
+  if(!s) return toast('Mauzo hayapatikani', 'err');
+  const brand = getBrand();
+  const biz = state.profile.biashara?.jina || brand.name || 'BiasharaPro';
+  const msg = `*RISITI YA MAUZO*\n${biz}\n\n*Tarehe:* ${dtstr(s.tarehe)}\n*Bidhaa:* ${s.bidhaa_jina}\n*Idadi:* ${num(s.idadi)}\n*Bei:* ${money(s.bei_kutoka)}\n*JUMLA:* ${money(s.jumla)}\n\n_Asante kwa kununua! Karibu tena._`;
+  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+  logAction('tuma_whatsapp', `${s.bidhaa_jina} - ${money(s.jumla)}`);
+}
+
+let _prodsCache = [];
+async function saleModal(){
+  _prodsCache = await getProducts();
+  const prods = _prodsCache.filter(p => p.stock > 0);
+  if(!prods.length) return toast('Ongeza bidhaa kwanza', 'err');
+  showModal('Rekodi Mauzo', `<form onsubmit="saveSale(event)"><label>Chagua Bidhaa *</label><select id="sProd" onchange="onProdChange()" required><option value="">— Chagua —</option>${prods.map(p => `<option value="${p.id}">${esc(p.jina)} — ${money(p.bei_kutoka)} (stock: ${p.stock})</option>`).join('')}</select><label>Idadi *</label><input id="sQty" type="number" min="1" value="1" oninput="calcSale()" required><label>Bei kwa Kimoja *</label><input id="sPrice" type="number" step="0.01" min="0" oninput="calcSale()" required><div class="hint" id="saleInfo">Chagua bidhaa.</div><button class="btn primary full" type="submit">✅ Rekodi Mauzo</button></form>`);
+}
+function onProdChange(){ const pid = document.getElementById('sProd').value; const p = _prodsCache.find(x => x.id === pid); const qtyEl = document.getElementById('sQty'); if(p){ document.getElementById('sPrice').value = p.bei_kutoka; qtyEl.max = p.stock; if(+qtyEl.value > p.stock) qtyEl.value = p.stock; } calcSale(); }
+function calcSale(){ const pid = document.getElementById('sProd').value; const p = _prodsCache.find(x => x.id === pid); const box = document.getElementById('saleInfo'); const qty = +document.getElementById('sQty').value || 0; const price = +document.getElementById('sPrice').value || 0; if(!p){ box.innerHTML = 'Chagua bidhaa.'; return; } const total = qty * price; const profit = (price - p.bei_halisi) * qty; const warn = qty > p.stock ? `<br><span style="color:var(--err)">⚠️ Stock ni ${p.stock} tu!</span>` : ''; box.innerHTML = `Jumla: <b style="color:var(--primary)">${money(total)}</b><br>Faida: <b class="${profit>=0?'pos':'neg'}">${money(profit)}</b>${warn}`; }
+
+async function saveSale(e){
+  e.preventDefault();
+  const pid = document.getElementById('sProd').value;
+  const p = _prodsCache.find(x => x.id === pid);
+  if(!p) return toast('Chagua bidhaa', 'err');
+  const qty = +document.getElementById('sQty').value || 0;
+  const price = +document.getElementById('sPrice').value || 0;
+  if(qty < 1) return toast('Idadi si sahihi', 'err');
+  if(qty > p.stock) return toast('Stock haitoshi', 'err');
+  const jumla = qty * price;
+  const faida = (price - p.bei_halisi) * qty;
+  const { error } = await db.from('mauzo').insert({ biashara_id: bizId(), bidhaa_id: p.id, bidhaa_jina: p.jina, idadi: qty, bei_kutoka: price, jumla, faida, muuzaji_id: state.profile.id, muuzaji_jina: state.profile.jina_kamili });
+  if(error) return toast(error.message, 'err');
+  await db.from('bidhaa').update({ stock: p.stock - qty }).eq('id', p.id);
+  _prodsCache = [];
+  closeModal();
+  toast('Mauzo yamerekodiwa! Faida: ' + money(faida), 'ok');
+  logAction('rekodi_mauzo', `${p.jina} x${qty} = ${money(jumla)}`);
+  render();
+}
+
+async function generateReceipt(saleId){
+  const sales = await getSales();
+  const s = sales.find(x => x.id === saleId);
+  if(!s) return toast('Mauzo hayapatikani', 'err');
+  const brand = getBrand();
+  const doc = new jsPDF({ unit:'mm', format:'a5' });
+  const W = doc.internal.pageSize.getWidth();
+  const biz = state.profile.biashara?.jina || brand.name || 'BiasharaPro';
+  doc.setFillColor(91,75,255); doc.rect(0,0,W,32,'F');
+  doc.setTextColor(255,255,255); doc.setFontSize(18); doc.setFont('helvetica','bold');
+  doc.text('RISITI YA MAUZO', W/2, 14, { align:'center' });
+  doc.setFontSize(10); doc.setFont('helvetica','normal'); doc.text(biz, W/2, 22, { align:'center' });
+  doc.setTextColor(15,23,42); doc.setFontSize(10);
+  let y = 44;
+  doc.text('Tarehe:', 12, y); doc.text(dtstr(s.tarehe), 45, y); y += 7;
+  doc.text('Muuzaji:', 12, y); doc.text(s.muuzaji_jina || '—', 45, y); y += 7;
+  doc.text('Namba ya Risiti:', 12, y); doc.text(s.id.slice(0,8).toUpperCase(), 45, y); y += 12;
+  doc.setFillColor(241,245,249); doc.rect(12, y-6, W-24, 8, 'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(10);
+  doc.text('MAELEZO', 14, y); doc.text('JUMLA', W-14, y, { align:'right' }); y += 8;
+  doc.setFont('helvetica','normal'); doc.text(s.bidhaa_jina, 14, y); doc.text(money(s.jumla), W-14, y, { align:'right' }); y += 7;
+  doc.setFontSize(9); doc.setTextColor(100,116,139); doc.text(`${num(s.idadi)} x ${money(s.bei_kutoka)}`, 14, y); y += 10;
+  doc.setDrawColor(226,232,240); doc.line(12, y, W-12, y); y += 8;
+  doc.setTextColor(15,23,42); doc.setFont('helvetica','bold'); doc.setFontSize(13);
+  doc.text('JUMLA KUU:', 12, y); doc.text(money(s.jumla), W-12, y, { align:'right' }); y += 12;
+  doc.setFont('helvetica','italic'); doc.setFontSize(10); doc.setTextColor(100,116,139);
+  doc.text('Asante kwa kununua! Karibu tena.', W/2, y, { align:'center' });
+  if(brand.phone || brand.email || brand.whatsapp){
+    y += 8; doc.setFontSize(9);
+    const c = [brand.phone, brand.email, brand.whatsapp].filter(Boolean).join(' · ');
+    if(c) doc.text(c, W/2, y, { align:'center' });
+  }
+  doc.save('risiti-' + s.id.slice(0,8) + '.pdf');
+  toast('Risiti imepakuliwa', 'ok');
+}
+
+async function pgUsers(){
+  if(!isOwner()) return '<div class="empty"><div class="e">🔒</div><div>Huna ruhusa</div></div>';
+  const users = await getUsers();
+  const sellers = users.filter(u => u.role === 'muuzaji');
+  const sales = await getSales();
+  const code = state.profile.biashara?.code || '—';
+  return `
+    <div class="head"><div><h2 class="pt">Watumiaji</h2><p class="ps" style="margin:0">Wauzaji wa biashara yako</p></div></div>
+    <div class="card" style="background:linear-gradient(135deg,#5b4bff,#a55bff);color:#fff;border:1px solid rgba(255,255,255,0.3);box-shadow:0 12px 32px rgba(91,75,255,0.35)">
+      <div style="font-size:12px;opacity:.9;margin-bottom:8px;font-weight:700;letter-spacing:.5px">BUSINESS CODE</div>
+      <div style="font-size:30px;font-weight:900;letter-spacing:5px;font-family:ui-monospace,monospace;text-align:center;padding:12px 0">${esc(code)}</div>
+      <button class="btn full" style="background:rgba(255,255,255,.22);color:#fff;margin-top:8px;backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.3)" onclick="copyCode('${esc(code)}')">📋 Nakili Code</button>
+    </div>
+    <div class="stats"><div class="stat"><div class="lb">Watumiaji</div><div class="vl">${users.length}</div></div><div class="stat"><div class="lb">Wauzaji</div><div class="vl">${sellers.length}</div></div><div class="stat"><div class="lb">Wanaofanya Kazi</div><div class="vl">${sellers.filter(s=>s.active).length}</div></div><div class="stat"><div class="lb">Mauzo</div><div class="vl">${sales.length}</div></div></div>
+    <div class="card"><h3>Orodha ya watumiaji</h3>${users.map((u,i) => { const us = sales.filter(s => s.muuzaji_id === u.id); return `<div style="padding:12px 0;${i<users.length-1?'border-bottom:1px solid rgba(255,255,255,0.5)':''}"><div style="display:flex;align-items:center;gap:11px"><div style="width:44px;height:44px;border-radius:15px;flex:none;background:${u.role==='mmiliki'?'linear-gradient(135deg,#5b4bff,#a55bff)':'rgba(91,75,255,0.15)'};color:${u.role==='mmiliki'?'#fff':'#4338ca'};display:flex;align-items:center;justify-content:center;font-weight:800;box-shadow:${u.role==='mmiliki'?'0 6px 16px rgba(91,75,255,0.3)':'none'}">${esc((u.jina_kamili||'?')[0].toUpperCase())}</div><div style="flex:1;min-width:0"><div style="font-weight:700;font-size:14px">${esc(u.jina_kamili)} ${u.role==='mmiliki'?'<span class="badge info">Mmiliki</span>':''} ${!u.active?'<span class="badge err">Imezimwa</span>':''}</div><div style="font-size:12px;color:var(--muted)">@${esc(u.username||'—')} · Mauzo: ${us.length} · ${money(sum(us,'jumla'))}</div></div></div>${u.role==='muuzaji' ? `<div style="display:flex;gap:7px;margin-top:10px;margin-left:55px;flex-wrap:wrap"><button class="btn ghost xs" onclick="toggleUser('${u.id}', ${u.active})">${u.active?'🚫 Zima':'✅ Ruhusu'}</button> <button class="btn danger xs" onclick="delUser('${u.id}')">🗑️ Futa</button></div>` : ''}</div>`; }).join('')}</div>
+  `;
+}
+async function toggleUser(id, active){ const { error } = await db.from('watumiaji').update({ active: !active }).eq('id', id); if(error) return toast(error.message, 'err'); toast(!active?'Ameruhusiwa':'Amezimwa', 'ok'); logAction('badili_mtumiaji', id); render(); }
+async function delUser(id){ if(!confirm('Futa muuzaji huyu?')) return; const { error } = await db.from('watumiaji').delete().eq('id', id); if(error) return toast(error.message, 'err'); toast('Amefutwa', 'ok'); logAction('futa_mtumiaji', id); render(); }
+
+async function pgAudit(){
+  if(!isOwner()) return '<div class="empty"><div class="e">🔒</div><div>Ni kwa mmiliki</div></div>';
+  const logs = await getAudit();
+  return `
+    <h2 class="pt">Kumbukumbu</h2>
+    <p class="ps">Matukio ${logs.length} ya karibuni</p>
+    <div class="card">
+      ${logs.length ? logs.map(l => `
+        <div style="padding:11px 0;border-bottom:1px solid rgba(255,255,255,0.5);display:flex;gap:10px;align-items:flex-start">
+          <div style="width:36px;height:36px;border-radius:12px;background:rgba(91,75,255,0.15);color:#4338ca;display:flex;align-items:center;justify-content:center;font-size:15px;flex:none">
+            ${l.kitendo === 'login' ? '🔑' : l.kitendo === 'logout' ? '🚪' : l.kitendo === 'rekodi_mauzo' ? '💰' : l.kitendo === 'ongeza_bidhaa' || l.kitendo === 'bulk_bidhaa' ? '📦' : l.kitendo === 'futa_bidhaa' ? '🗑️' : l.kitendo === 'hariri_bidhaa' ? '✏️' : l.kitendo === 'export_csv' ? '📊' : l.kitendo === 'tuma_whatsapp' ? '💬' : l.kitendo === 'backup' ? '💾' : l.kitendo === 'badili_branding' ? '🎨' : l.kitendo === 'badili_logo' ? '🖼️' : '📝'}
+          </div>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:700;font-size:13.5px">${esc((l.kitendo||'').replace(/_/g,' ').toUpperCase())}</div>
+            <div style="font-size:12.5px;color:var(--muted)">${esc(l.maelezo || '')}</div>
+            <div style="font-size:11.5px;color:var(--muted);margin-top:2px">${esc(l.mtumiaji_jina || '—')} · ${dtstr(l.tarehe)}</div>
+          </div>
+        </div>
+      `).join('') : '<div class="empty"><div class="e">📜</div><div>Hakuna kumbukumbu bado</div></div>'}
+    </div>
+  `;
+}
+
+async function pgBranding(){
+  if(!isOwner()) return '<div class="empty"><div class="e">🔒</div><div>Ni kwa mmiliki</div></div>';
+  const b = getBrand();
+  const logo = b.logo || 'BP';
+  const hasImage = !!b.logoImage;
+  return `
+    <h2 class="pt">🎨 Branding</h2>
+    <p class="ps">Badilisha muonekano wa mfumo wako</p>
+
+    <div class="card">
+      <h3>Jina la Mfumo</h3>
+      <label>Jina</label>
+      <input id="brName" value="${esc(b.name || 'BiasharaPro')}" placeholder="mfano: DukaPro">
+      <label>Tagline</label>
+      <input id="brTagline" value="${esc(b.tagline || 'Simamia biashara yako kwa urahisi')}" placeholder="mfano: Biashara yako, kwa urahisi">
+    </div>
+
+    <div class="card">
+      <h3>Logo</h3>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:10px">Pakia <b>picha yako</b> (200×200px, max 500KB) au andika herufi/emoji.</p>
+      <div class="logo-preview" id="logoPreview">${hasImage ? `<img src="${b.logoImage}" alt="logo">` : esc(logo)}</div>
+      <label class="logo-upload-btn">📷 Pakia Picha ya Logo<input type="file" id="logoFile" accept="image/*" onchange="uploadLogo(event)"></label>
+      ${hasImage ? `<button class="btn danger full" style="margin-top:10px" onclick="removeLogoImage()">🗑️ Ondoa Picha</button>` : ''}
+      <label style="margin-top:16px">Au Andika Herufi / Emoji</label>
+      <input id="brLogo" value="${esc(logo)}" placeholder="mfano: BP au 🏪" maxlength="4" style="text-align:center;font-size:22px;font-weight:800">
+    </div>
+
+    <div class="card">
+      <h3>Mawasiliano</h3>
+      <label>Namba ya Simu</label>
+      <input id="brPhone" value="${esc(b.phone || '')}" placeholder="+255 712 345 678">
+      <label>Email</label>
+      <input id="brEmail" type="email" value="${esc(b.email || '')}" placeholder="info@dukapro.co.tz">
+      <label>WhatsApp</label>
+      <input id="brWhatsapp" value="${esc(b.whatsapp || '')}" placeholder="+255 712 345 678">
+    </div>
+
+    <button class="btn primary full" onclick="saveBranding()">💾 Hifadhi Branding</button>
+    <button class="btn ghost full" onclick="resetBranding()">🔄 Rudisha kwa Default</button>
+  `;
+}
+
+function uploadLogo(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  if(!file.type.startsWith('image/')) return toast('Faili si picha', 'err');
+  if(file.size > 500 * 1024) return toast('Picha ni kubwa (max 500KB)', 'err');
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const b = getBrand();
+    b.logoImage = e.target.result;
+    saveBrand(b);
+    toast('Picha imepakiwa! 🎨', 'ok');
+    logAction('badili_logo', 'Picha ya logo imepakiwa');
+    render();
+  };
+  reader.onerror = () => toast('Imeshindwa kusoma picha', 'err');
+  reader.readAsDataURL(file);
+}
+function removeLogoImage(){
+  if(!confirm('Ondoa picha ya logo?')) return;
+  const b = getBrand();
+  delete b.logoImage;
+  saveBrand(b);
+  toast('Picha imeondolewa', 'ok');
+  logAction('badili_logo', 'Picha imeondolewa');
+  render();
+}
+function saveBranding(){
+  const existing = getBrand();
+  const b = {
+    name: document.getElementById('brName').value.trim() || 'BiasharaPro',
+    tagline: document.getElementById('brTagline').value.trim() || 'Simamia biashara yako kwa urahisi',
+    logo: document.getElementById('brLogo').value.trim() || 'BP',
+    logoImage: existing.logoImage || '',
+    phone: document.getElementById('brPhone').value.trim(),
+    email: document.getElementById('brEmail').value.trim(),
+    whatsapp: document.getElementById('brWhatsapp').value.trim()
+  };
+  saveBrand(b);
+  toast('Branding imehifadhiwa! 🎨', 'ok');
+  logAction('badili_branding', 'Jina: ' + b.name);
+  render();
+}
+function resetBranding(){
+  if(!confirm('Rudisha branding kwa default?')) return;
+  localStorage.removeItem(BRAND_KEY);
+  applyBrand();
+  toast('Branding imerudishwa', 'ok');
+  render();
+}
+
+function setPeriod(p){ state.period = p; render(); }
+function setReportView(v){ state.reportView = v; render(); }
+
+async function pgReports(){
+  const sales = await getSales();
+  const now = new Date();
+  let from = 0, label = 'Zote';
+  if(state.period === 'today'){ const d=new Date(); d.setHours(0,0,0,0); from=d.getTime(); label='Leo'; }
+  else if(state.period === 'week'){ const d=new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()-6); from=d.getTime(); label='Wiki Hii'; }
+  else if(state.period === 'month'){ from = new Date(now.getFullYear(), now.getMonth(), 1).getTime(); label='Mwezi Huu'; }
+  else if(state.period === 'year'){ from = new Date(now.getFullYear(), 0, 1).getTime(); label='Mwaka Huu'; }
+  const f = sales.filter(s => new Date(s.tarehe).getTime() >= from);
+  const total = sum(f,'jumla'), profit = sum(f,'faida');
+  const cost = sum(f, s => s.jumla - s.faida);
+  const margin = total > 0 ? (profit/total*100) : 0;
+  const pmap = {};
+  f.forEach(s => { if(!pmap[s.bidhaa_jina]) pmap[s.bidhaa_jina]={qty:0,total:0,profit:0}; pmap[s.bidhaa_jina].qty += s.idadi; pmap[s.bidhaa_jina].total += s.jumla; pmap[s.bidhaa_jina].profit += s.faida; });
+  const top = Object.entries(pmap).sort((a,b)=> b[1].profit - a[1].profit).slice(0,8);
+  const smap = {};
+  f.forEach(s => { const k = s.muuzaji_jina||'—'; if(!smap[k]) smap[k]={count:0,total:0,profit:0}; smap[k].count++; smap[k].total += s.jumla; smap[k].profit += s.faida; });
+  const bySeller = Object.entries(smap).sort((a,b)=> b[1].total - a[1].total);
+  const days = [];
+  for(let i=6; i>=0; i--){ const d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()-i); const nx = new Date(d); nx.setDate(nx.getDate()+1); const ds = sales.filter(s => { const t = new Date(s.tarehe).getTime(); return t>=d.getTime() && t<nx.getTime(); }); days.push({ label: d.toLocaleDateString('sw-TZ',{weekday:'short'}), total: sum(ds,'jumla') }); }
+  const maxDay = Math.max(...days.map(d=>d.total), 1);
+  const months = [];
+  for(let i=11; i>=0; i--){
+    const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+    const nx = new Date(now.getFullYear(), now.getMonth()-i+1, 1);
+    const ms = sales.filter(s => { const t = new Date(s.tarehe).getTime(); return t>=d.getTime() && t<nx.getTime(); });
+    months.push({ label: d.toLocaleDateString('sw-TZ',{month:'short'}), total: sum(ms,'jumla'), profit: sum(ms,'faida') });
+  }
+  const maxMonth = Math.max(...months.map(m=>m.total), 1);
+  const periods = [['today','Leo'],['week','Wiki'],['month','Mwezi'],['year','Mwaka'],['all','Zote']];
+  return `
+    <h2 class="pt">Ripoti</h2><p class="ps">Uchambuzi — ${label}</p>
+    <div style="display:flex;gap:7px;overflow-x:auto;padding-bottom:12px">${periods.map(([k,v]) => `<button class="btn ${state.period===k?'primary':'ghost'} sm" style="flex:none" onclick="setPeriod('${k}')">${v}</button>`).join('')}</div>
+    <div class="stats"><div class="stat p"><div class="lb">Mauzo (${label})</div><div class="vl">${money(total)}</div></div><div class="stat g"><div class="lb">Faida (${label})</div><div class="vl">${money(profit)}</div></div><div class="stat"><div class="lb">Gharama</div><div class="vl">${money(cost)}</div></div><div class="stat"><div class="lb">Margin</div><div class="vl">${margin.toFixed(1)}%</div></div></div>
+    <div class="card">
+      <h3 style="flex-wrap:wrap">📊 Mauzo ya ${state.reportView === 'week' ? 'Siku 7' : 'Miezi 12'}
+        <div style="display:flex;gap:5px">
+          <button class="btn ${state.reportView==='week'?'primary':'ghost'} xs" onclick="setReportView('week')">Siku 7</button>
+          <button class="btn ${state.reportView==='month'?'primary':'ghost'} xs" onclick="setReportView('month')">Miezi 12</button>
+        </div>
+      </h3>
+      ${state.reportView === 'week' ? `
+        <div class="chart">${days.map(d => `<div class="bar" title="${money(d.total)}"><div class="val">${d.total>0?num(Math.round(d.total/1000))+'k':''}</div><div class="fill" style="height:${Math.max(6,(d.total/maxDay)*100)}%"></div><div class="lab">${d.label}</div></div>`).join('')}</div>
+        <p style="font-size:12px;color:var(--muted);margin-top:10px;text-align:center">Jumla siku 7: <b>${money(sum(days,'total'))}</b></p>
+      ` : `
+        <div class="chart">${months.map(m => `<div class="bar" title="${money(m.total)}"><div class="val">${m.total>0?num(Math.round(m.total/1000))+'k':''}</div><div class="fill" style="height:${Math.max(6,(m.total/maxMonth)*100)}%;background:linear-gradient(180deg,#ffb366,#f59e0b);box-shadow:0 4px 12px rgba(245,158,11,0.3)"></div><div class="lab">${m.label}</div></div>`).join('')}</div>
+        <p style="font-size:12px;color:var(--muted);margin-top:10px;text-align:center">Jumla miezi 12: <b>${money(sum(months,'total'))}</b> · Faida: <b class="pos">${money(sum(months,'profit'))}</b></p>
+      `}
+    </div>
+    <div class="card"><h3>🏆 Bidhaa Zenye Faida Kubwa</h3>${top.length ? `<div class="tw"><table><thead><tr><th>#</th><th>Bidhaa</th><th class="num">Idadi</th><th class="num">Mauzo</th><th class="num">Faida</th></tr></thead><tbody>${top.map(([n,d],i)=>`<tr><td><b>${i+1}</b></td><td>${esc(n)}</td><td class="num">${num(d.qty)}</td><td class="num">${money(d.total)}</td><td class="num pos">${money(d.profit)}</td></tr>`).join('')}</tbody></table></div>` : '<div class="empty"><div class="e">📭</div><div>Hakuna data</div></div>'}</div>
+    <div class="card"><h3>👥 Utendaji kwa Muuzaji</h3>${bySeller.length ? `<div class="tw"><table><thead><tr><th>Muuzaji</th><th class="num">Mauzo</th><th class="num">Jumla</th><th class="num">Faida</th></tr></thead><tbody>${bySeller.map(([n,d])=>`<tr><td><b>${esc(n)}</b></td><td class="num">${d.count}</td><td class="num">${money(d.total)}</td><td class="num pos">${money(d.profit)}</td></tr>`).join('')}</tbody></table></div>` : '<div class="empty"><div class="e">📭</div><div>Hakuna data</div></div>'}</div>
+    <button class="btn ghost full" onclick="exportData()">⬇️ Pakua Ripoti (JSON)</button>
+  `;
+}
+
+async function pgSettings(){
+  const sales = await getSales();
+  const prods = await getProducts();
+  const users = await getUsers();
+  const owner = users.find(u => u.role === 'mmiliki');
+  const code = state.profile.biashara?.code || '—';
+  const lastBackup = localStorage.getItem(BACKUP_KEY);
+  const autoBackupOn = localStorage.getItem('bp_auto_backup') === '1';
+  const brand = getBrand();
+  return `
+    <h2 class="pt">Mipangilio</h2><p class="ps">Taarifa za akaunti</p>
+    ${isOwner() ? `<div class="card" style="background:linear-gradient(135deg,#5b4bff,#a55bff);color:#fff;border:1px solid rgba(255,255,255,0.3);box-shadow:0 12px 32px rgba(91,75,255,0.35)"><div style="font-size:12px;opacity:.9;margin-bottom:8px;font-weight:700;letter-spacing:.5px">BUSINESS CODE YAKO</div><div style="font-size:28px;font-weight:900;letter-spacing:5px;font-family:ui-monospace,monospace;text-align:center;padding:10px 0">${esc(code)}</div><button class="btn full" style="background:rgba(255,255,255,.22);color:#fff;margin-top:8px;backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.3)" onclick="copyCode('${esc(code)}')">📋 Nakili</button></div>` : ''}
+    <div class="card"><h3>🏢 Taarifa za Biashara</h3><div class="hint" style="margin-top:0"><b>Jina la Biashara:</b> ${esc(state.profile.biashara?.jina||'—')}<br><b>Mmiliki:</b> ${esc(owner?.jina_kamili||'—')}<br><b>Username yako:</b> @${esc(state.profile.username||'—')}<br><b>Wewe ni:</b> ${isOwner()?'Mmiliki':'Muuzaji'}<br><b>Mfumo:</b> ${esc(brand.name||'BiasharaPro')}<br><b>Imeanzishwa:</b> ${dstr(state.profile.biashara?.imeundwa||Date.now())}</div></div>
+    <div class="card"><h3>📊 Data</h3><div class="stats" style="grid-template-columns:repeat(3,1fr);margin-bottom:0"><div class="stat"><div class="lb">Bidhaa</div><div class="vl">${prods.length}</div></div><div class="stat"><div class="lb">Mauzo</div><div class="vl">${sales.length}</div></div><div class="stat"><div class="lb">Watumiaji</div><div class="vl">${users.length}</div></div></div></div>
+    ${isOwner() ? `
+    <div class="card">
+      <h3>💾 Backup Automatic</h3>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0">
+        <div><div style="font-weight:700;font-size:14px">Washa Backup ya Kila Siku</div><div style="font-size:12px;color:var(--muted);margin-top:2px">Inapakuliwa mara moja kwa siku</div></div>
+        <label class="switch"><input type="checkbox" ${autoBackupOn?'checked':''} onchange="toggleAutoBackup(this.checked)"><span class="slider"></span></label>
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-top:6px">Backup ya mwisho: <b>${lastBackup ? dtstr(+lastBackup) : 'Hakuna'}</b></div>
+      <button class="btn ghost full" style="margin-top:12px" onclick="doBackup(true)">💾 Backup Sasa</button>
+    </div>
+    ` : ''}
+    <div class="card">
+      <h3>📲 Weka kama App</h3>
+      <p style="font-size:13.5px;color:var(--muted);line-height:1.7">Bonyeza menu ya browser kisha <b>"Add to Home Screen"</b>.</p>
+      <button class="btn ghost full" style="margin-top:10px" onclick="installPWA()">📲 Weka kwenye Simu</button>
+    </div>
+    <div class="card">
+      <h3>📜 Kisheria</h3>
+      <button class="btn ghost full" style="margin-top:0" onclick="showTerms()">Masharti ya Matumizi</button>
+      <button class="btn ghost full" style="margin-top:8px" onclick="showPrivacy()">Sera ya Faragha</button>
+    </div>
+    <div class="card"><h3>💾 Hifadhi Nakala (JSON)</h3><p style="font-size:13.5px;color:var(--muted);margin-bottom:12px">Pakua data yote kama faili la JSON.</p><button class="btn ghost full" style="margin-top:0" onclick="exportData()">⬇️ Pakua Data (JSON)</button></div>
+    <button class="btn ghost full" onclick="logout()">🚪 Toka</button>
+    <p style="text-align:center;color:var(--muted);font-size:12px;margin-top:22px">${esc(brand.name||'BiasharaPro')} v7.0 · Liquid Glass</p>
+  `;
+}
+
+function toggleAutoBackup(on){
+  localStorage.setItem('bp_auto_backup', on ? '1' : '0');
+  toast(on ? 'Backup ya kila siku imewashwa' : 'Backup imezimwa', 'ok');
+  if(on) checkAutoBackup();
+}
+async function checkAutoBackup(){
+  if(!isOwner()) return;
+  if(localStorage.getItem('bp_auto_backup') !== '1') return;
+  const last = +localStorage.getItem(BACKUP_KEY) || 0;
+  if(Date.now() - last > 24 * 60 * 60 * 1000){ setTimeout(() => doBackup(false), 2000); }
+}
+async function doBackup(manual){
+  try {
+    const data = { biashara: state.profile.biashara?.jina, code: state.profile.biashara?.code, imetolewa: new Date().toISOString(), bidhaa: await getProducts(), mauzo: await getSales(), watumiaji: (await getUsers()).map(u => ({...u, password_hash:'***'})) };
+    download(`biashara-backup-${new Date().toISOString().slice(0,10)}.json`, JSON.stringify(data, null, 2), 'application/json');
+    localStorage.setItem(BACKUP_KEY, Date.now().toString());
+    toast(manual ? 'Backup imepakuliwa' : 'Backup ya kila siku imepakuliwa', 'ok');
+    logAction('backup', 'Backup imefanyika');
+  } catch(e){ toast('Backup imeshindwa: ' + e.message, 'err'); }
+}
+
+let deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredInstallPrompt = e; });
+function installPWA(){
+  if(deferredInstallPrompt){
+    deferredInstallPrompt.prompt();
+    deferredInstallPrompt.userChoice.then((choice) => {
+      if(choice.outcome === 'accepted') toast('Asante! App imewekwa', 'ok');
+      deferredInstallPrompt = null;
+    });
+  } else {
+    showModal('Weka kama App', `
+      <p style="font-size:14px;line-height:1.7">Kwenye simu yako, fuata hatua hizi:</p>
+      <ol style="font-size:14px;line-height:1.9;margin-top:10px;padding-left:22px">
+        <li>Bonyeza menu ya browser (⋮ au •••)</li>
+        <li>Chagua <b>"Add to Home Screen"</b> au <b>"Install App"</b></li>
+        <li>App itaonekana kwenye home screen yako</li>
+      </ol>
+    `);
+  }
+}
+
+try {
+  const b = getBrand();
+  const logoTxt = (b.logo || 'BP').slice(0,3).replace(/[<>&"']/g,'');
+  const iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5b4bff"/><stop offset="1" stop-color="#a55bff"/></linearGradient></defs><rect width="192" height="192" rx="42" fill="url(#g)"/><text x="96" y="128" font-size="80" font-weight="900" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">${logoTxt}</text></svg>`;
+  const iconUrl = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(iconSvg)));
+  const manifest = { name: b.name||'BiasharaPro', short_name: (b.name||'BiasharaPro').slice(0,12), description: b.tagline||'Mfumo wa usimamizi wa biashara', start_url: './', display: 'standalone', background_color: '#5b4bff', theme_color: '#5b4bff', icons: [{ src: iconUrl, sizes: '192x192', type: 'image/svg+xml', purpose: 'any maskable' }] };
+  const blob = new Blob([JSON.stringify(manifest)], {type: 'application/manifest+json'});
+  const link = document.createElement('link');
+  link.rel = 'manifest'; link.href = URL.createObjectURL(blob);
+  document.head.appendChild(link);
+  const appleIcon = document.createElement('link'); appleIcon.rel = 'apple-touch-icon'; appleIcon.href = iconUrl;
+  document.head.appendChild(appleIcon);
+} catch(e){ console.warn('PWA:', e); }
+
+async function exportData(){
+  const data = { biashara: state.profile.biashara?.jina, code: state.profile.biashara?.code, imetolewa: new Date().toISOString(), bidhaa: await getProducts(), mauzo: await getSales(), watumiaji: (await getUsers()).map(u => ({...u, password_hash:'***'})) };
+  download('biashara-' + Date.now() + '.json', JSON.stringify(data, null, 2), 'application/json');
+  toast('Data imepakuliwa', 'ok');
+}
+
+function showModal(title, body){ const m = document.getElementById('modal'); m.innerHTML = `<div class="modal-box" onclick="event.stopPropagation()"><div class="modal-head"><h3>${esc(title)}</h3><button class="icon-btn" onclick="closeModal()">✕</button></div><div class="modal-body">${body}</div></div>`; m.classList.remove('hidden'); m.onclick = closeModal; }
+function closeModal(){ document.getElementById('modal').classList.add('hidden'); document.getElementById('modal').innerHTML = ''; }
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeModal(); });
+</script>
+</body>
+</html>
